@@ -595,10 +595,17 @@ private:
 	bool Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_CHECK_BALANCE_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 
+	//{{ Iruha : 2026-09-09 // Phase 3B. REFORM_ENTRY_POINT's channel-list leg -
+	// see Handlers_Login.cpp for why this stays out of Handlers_Unit.cpp.
+	bool Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	//}}
+
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Unit.cpp
 	bool Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	void BuildCreateUnitAck( KOfflineSession& kSes, const std::wstring& wstrNickName,
+		int iClass, OUT KEGS_CREATE_UNIT_ACK& kAck );
 	bool Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_FINAL_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_RESTORE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
@@ -608,6 +615,22 @@ private:
 	/// The five SERV_SELECT_UNIT_PACKET_DIVISION notifications, pushed in order
 	/// before EGS_SELECT_UNIT_ACK.
 	void PushSelectUnitNotifications( KOfflineSession& kSes, const KOfflineUnitRow& kRow );
+
+	//{{ Iruha : 2026-09-09 // Phase 3B. REFORM_ENTRY_POINT's replacement for the
+	// character list, plus the shared plumbing between it and the old handler
+	// above - see Handlers_Unit.cpp.
+	bool Handler_EGS_CHARACTER_LIST_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	static void LoadUnitInfoList( UidType nUserUID, OUT std::vector< KUnitInfo >& vecOut );
+	void PushServerSelectDefaults( KOfflineSession& kSes );
+	//}}
+
+	//{{ Iruha : 2026-09-09 // Character creation, needed for Phase 3B's done-when
+	// criteria - see the block comment above BuildCreateUnitAck in Handlers_Unit.cpp.
+	bool Handler_EGS_CREATE_NEW_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	//}}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Handlers_Field.cpp

@@ -337,4 +337,38 @@ bool CX2OfflineServer::Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( KOfflineSes
 	return ReplyID( kSes, EGS_DISCONNECT_FOR_SERVER_SELECT_ACK );
 }
 
+//////////////////////////////////////////////////////////////////////////
+//{{ Iruha : 2026-09-09 // Phase 3B. First of REFORM_ENTRY_POINT's three
+// character-select packets (X2Lib/X2StateServerSelect.cpp). No request body
+// (SendID). One shard, one channel - reuses the same OFFLINE_* constants as
+// Handler_ECH_GET_CHANNEL_LIST_REQ above, but the group key has to be
+// SEnum::SGI_SOLES (0) here, not OFFLINE_SERVER_GROUP_ID (1): that constant is
+// the channel-server's own group registry, a different ID space from
+// SEnum::SERVER_GROUP_ID, and the client's ACK handler
+// (Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK) reads m_mapSolesChannelList
+// only after switching on m_pSelectUnit->GetServerGroupID() - the same key
+// Handler_EGS_CHARACTER_LIST_REQ (Handlers_Unit.cpp) hands out per unit.
+bool CX2OfflineServer::Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+{
+	KChannelInfo kChannel;
+	kChannel.m_iServerUID			= OFFLINE_CHANNEL_ID;
+	kChannel.m_iChannelID			= OFFLINE_CHANNEL_ID;
+	kChannel.m_wstrChannelName		= L"Offline-1";
+	kChannel.m_iServerGroupID		= (int)SEnum::SGI_SOLES;
+	kChannel.m_wstrIP				= OFFLINE_IP;		///< never dialled, but must be non-empty
+	kChannel.m_usMasterPort			= OFFLINE_PORT;
+	kChannel.m_usNCUDPPort			= (u_short)OFFLINE_UDP_PORT;
+	kChannel.m_iMaxUser				= 100;
+	kChannel.m_iCurrentUser			= 1;
+	kChannel.m_iCurPartyCount		= 0;
+	kChannel.m_iPlayGamePartyCount	= 0;
+
+	KEGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK kAck;
+	kAck.m_mapSolesChannelList.insert( std::make_pair( OFFLINE_CHANNEL_ID, kChannel ) );
+	// no Gaia shard, no channel bonuses offline
+
+	return Reply( kSes, EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK, kAck );
+}
+//}}
+
 #endif SERV_IRUHADEV_OFFLINE

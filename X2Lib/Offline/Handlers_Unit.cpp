@@ -49,28 +49,16 @@ namespace
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+//{{ Iruha : 2026-09-09 // Phase 3B. Shared between the pre-REFORM_ENTRY_POINT
+// character list (Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ) and its
+// replacement (Handler_EGS_CHARACTER_LIST_REQ below), so the LoadUnits ->
+// MakeUnitInfoFromRow loop is written once.
+void CX2OfflineServer::LoadUnitInfoList( UidType nUserUID, OUT std::vector< KUnitInfo >& vecOut )
 {
-	// THE character list. No request body (SendID).
-	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
-		return false;
-
-	// Belt and braces for the gate in Handler_EGS_SELECT_UNIT_REQ: only
-	// CX2StateServerSelect asks for this list, so receiving it means the player
-	// is on the character-select screen whatever the session thought.
-	// EGS_STATE_CHANGE_SERVER_SELECT_REQ normally gets there first.
-	kSes.m_eState = S_SERVER_SELECT;
-
 	std::vector< KOfflineUnitRow > vecRow;
-	CX2OfflineDB::Instance()->LoadUnits( kSes.m_nUserUID, vecRow );
+	CX2OfflineDB::Instance()->LoadUnits( nUserUID, vecRow );
 
-	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK kAck;
-	kAck.m_iOK			= NetError::NET_OK;
-	kAck.m_nUnitSlot	= m_iUnitSlots;
-	kAck.m_bSharingBank	= false;
-
-	int iDeleted = 0;
+	vecOut.clear();
 
 	// Soft-deleted units belong in this list: KUnitInfo carries m_bDeleted and
 	// m_trDelAbleDate, and CreateUnitButton() draws the restore / final-delete
@@ -80,21 +68,16 @@ bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOffline
 		KUnitInfo kUnit;
 		MakeUnitInfoFromRow( kUnit, vecRow[i] );
 
-		kAck.m_vecUnitInfo.push_back( kUnit );
-
-		if( true == vecRow[i].IsDeleted() )
-			++iDeleted;
+		vecOut.push_back( kUnit );
 	}
+}
 
-	Reply( kSes, EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, kAck );
-
-	CX2OfflineLog::Server( L"UNITLIST %u unit(s) (%d deleted), %d slots, userUID=%I64d",
-		(unsigned int)vecRow.size(), iDeleted, m_iUnitSlots, (__int64)kSes.m_nUserUID );
-
-	// Server-push defaults the client would otherwise never receive. Both
-	// handlers fall back to sane defaults on an empty collection
-	// (CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT calls
-	// CKTDIManager::SetDefaultMap()).
+// Server-push defaults the client would otherwise never receive after either
+// character-list reply. Both handlers fall back to sane defaults on an empty
+// collection (CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT
+// calls CKTDIManager::SetDefaultMap()).
+void CX2OfflineServer::PushServerSelectDefaults( KOfflineSession& kSes )
+{
 	KEGS_KEYBOARD_MAPPING_INFO_NOT kKeyNot;
 	kKeyNot.m_iOK = NetError::NET_OK;
 	Reply( kSes, EGS_KEYBOARD_MAPPING_INFO_NOT, kKeyNot );
@@ -119,34 +102,138 @@ bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOffline
 	kSecNot.m_iOK			= NetError::NET_OK;
 	kSecNot.m_bUseSecondPW	= false;			///< no second password offline
 	Reply( kSes, EGS_SECOND_SECURITY_INFO_NOT, kSecNot );
+}
+//}}
+
+bool CX2OfflineServer::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+{
+	// THE character list. No request body (SendID). Only reached pre-
+	// REFORM_ENTRY_POINT builds; the client in this tree takes
+	// Handler_EGS_CHARACTER_LIST_REQ below instead, but the handler stays for
+	// completeness / other configs.
+	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
+		return false;
+
+	// Belt and braces for the gate in Handler_EGS_SELECT_UNIT_REQ: only
+	// CX2StateServerSelect asks for this list, so receiving it means the player
+	// is on the character-select screen whatever the session thought.
+	// EGS_STATE_CHANGE_SERVER_SELECT_REQ normally gets there first.
+	kSes.m_eState = S_SERVER_SELECT;
+
+	std::vector< KUnitInfo > vecUnit;
+	LoadUnitInfoList( kSes.m_nUserUID, vecUnit );
+
+	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK kAck;
+	kAck.m_iOK			= NetError::NET_OK;
+	kAck.m_nUnitSlot	= m_iUnitSlots;
+	kAck.m_bSharingBank	= false;
+	kAck.m_vecUnitInfo	= vecUnit;
+
+	int iDeleted = 0;
+	for( size_t i = 0; i < vecUnit.size(); ++i )
+	{
+		if( true == vecUnit[i].m_bDeleted )
+			++iDeleted;
+	}
+
+	Reply( kSes, EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, kAck );
+
+	CX2OfflineLog::Server( L"UNITLIST %u unit(s) (%d deleted), %d slots, userUID=%I64d",
+		(unsigned int)vecUnit.size(), iDeleted, m_iUnitSlots, (__int64)kSes.m_nUserUID );
+
+	PushServerSelectDefaults( kSes );
 
 	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-bool CX2OfflineServer::Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+//{{ Iruha : 2026-09-09 // Phase 3B. REFORM_ENTRY_POINT's replacement for
+// Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ above - see
+// X2Lib/X2StateServerSelect.cpp's REFORM_ENTRY_POINT branch. Single-stage
+// only: this client build never sends EGS_CHARACTER_LIST_2ND_REQ (no call
+// sites, and it has no DECL_PACKET body in ClientPacket.h), so
+// KEGS_CHARACTER_LIST_ACK is both the "1st" and only ACK.
+//
+// SEnum::SGI_SOLES is used as the sole shard's group ID throughout, both here
+// and in Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ (Handlers_Login.cpp) -
+// the client's channel-list ACK handler filters on
+// m_pSelectUnit->GetServerGroupID(), so the two have to agree.
+bool CX2OfflineServer::Handler_EGS_CHARACTER_LIST_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
 {
-	KEGS_CREATE_UNIT_REQ kReq;
-	if( false == ReadReq( kEvent, kReq ) )
-		return false;
-
+	// No request body (SendID).
 	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
 		return false;
 
+	kSes.m_eState = S_SERVER_SELECT;
+
+	std::vector< KUnitInfo > vecUnit;
+	LoadUnitInfoList( kSes.m_nUserUID, vecUnit );
+
+	int iDeleted = 0;
+	for( size_t i = 0; i < vecUnit.size(); ++i )
+	{
+		if( true == vecUnit[i].m_bDeleted )
+			++iDeleted;
+	}
+
+	KEGS_CHARACTER_LIST_ACK kAck;
+	kAck.m_iOK									= NetError::NET_OK;
+	kAck.m_mapServerGroupUnitSlot[ SEnum::SGI_SOLES ]	= m_iUnitSlots;
+	kAck.m_mapServerGroupUnitInfo[ SEnum::SGI_SOLES ]	= vecUnit;
+	kAck.m_strUserID							= kSes.m_wstrLoginID;
+
+	Reply( kSes, EGS_CHARACTER_LIST_ACK, kAck );
+
+	CX2OfflineLog::Server( L"CHARLIST %u unit(s) (%d deleted), %d slots, userUID=%I64d",
+		(unsigned int)vecUnit.size(), iDeleted, m_iUnitSlots, (__int64)kSes.m_nUserUID );
+
+	PushServerSelectDefaults( kSes );
+
+	return true;
+}
+
+bool CX2OfflineServer::Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ( KOfflineSession& kSes, const KEvent& /*kEvent*/ )
+{
+	// No request body (SendID). The real server tracks a daily create-count
+	// cap per shard; offline mode never enforces it, so every shard reports 0.
+	KEGS_GET_CREATE_UNIT_TODAY_COUNT_ACK kAck;
+	kAck.m_iUserUID								= kSes.m_nUserUID;
+	kAck.m_mapCreateCharCountToday[ SEnum::SGI_SOLES ]	= 0;
+
+	return Reply( kSes, EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK, kAck );
+}
+//}}
+
+//////////////////////////////////////////////////////////////////////////
+
+//{{ Iruha : 2026-09-09 // Character creation, needed for Phase 3B's "enter the
+// village" done-when criteria: a fresh els_db.sql has no characters, so the
+// three-packet handshake alone cannot be exercised without also being able to
+// create one. Not in Phase 3B's original three-packet scope; added on
+// explicit instruction once the REFORM_ENTRY_POINT nickname-check request
+// (EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ) showed up UNHANDLED in play-testing.
+//
+// Both KEGS_CREATE_UNIT_REQ (the pre-REFORM_ENTRY_POINT request) and
+// KEGS_CREATE_NEW_UNIT_REQ (its replacement, see X2Lib/X2StateCreateUnit.cpp)
+// carry only a nickname and a class; CX2StateCreateUnit still waits on the
+// unconditional, un-gated EGS_CREATE_UNIT_ACK / KEGS_CREATE_UNIT_ACK for
+// *both* request shapes (Handler_EGS_CREATE_UNIT_ACK is dispatched with no
+// #ifdef REFORM_ENTRY_POINT guard), so one reply builder serves both.
+void CX2OfflineServer::BuildCreateUnitAck( KOfflineSession& kSes, const std::wstring& wstrNickName,
+	int iClass, OUT KEGS_CREATE_UNIT_ACK& kAck )
+{
 	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
 
-	KEGS_CREATE_UNIT_ACK kAck;
 	kAck.m_iOK				= NetError::NET_OK;
 	kAck.m_wstrEnableDate	= L"";
 
 	int iError = NetError::NET_OK;
 
-	if( false == IsAcceptableNickName( kReq.m_wstrNickName, iError ) )
+	if( false == IsAcceptableNickName( wstrNickName, iError ) )
 	{
 		kAck.m_iOK = iError;
 	}
-	else if( true == pDB->IsNickNameTaken( kReq.m_wstrNickName ) )
+	else if( true == pDB->IsNickNameTaken( wstrNickName ) )
 	{
 		kAck.m_iOK = NetError::ERR_CREATE_UNIT_01;		///< nickname already exists
 	}
@@ -160,23 +247,21 @@ bool CX2OfflineServer::Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const
 		// CX2StateCreateUnit::Handler_EGS_CREATE_UNIT_ACK reads the nickname and
 		// class back out of the failed ACK to re-populate its own form, so echo
 		// them even on the error path - dbo.gup_create_unit does the same.
-		kAck.m_kUnitInfo.m_wstrNickName	= kReq.m_wstrNickName;
-		kAck.m_kUnitInfo.m_cUnitClass	= (char)kReq.m_iClass;
+		kAck.m_kUnitInfo.m_wstrNickName	= wstrNickName;
+		kAck.m_kUnitInfo.m_cUnitClass	= (char)iClass;
 
 		CX2OfflineLog::Server( L"CREATE   rejected '%s' class=%d (m_iOK=%d)",
-			kReq.m_wstrNickName.c_str(), kReq.m_iClass, kAck.m_iOK );
-
-		return Reply( kSes, EGS_CREATE_UNIT_ACK, kAck );
+			wstrNickName.c_str(), iClass, kAck.m_iOK );
+		return;
 	}
 
 	KOfflineUnitRow kRow;
-	if( false == pDB->CreateUnit( kSes.m_nUserUID, kReq.m_iClass, kReq.m_wstrNickName, kRow ) )
+	if( false == pDB->CreateUnit( kSes.m_nUserUID, iClass, wstrNickName, kRow ) )
 	{
 		kAck.m_iOK						= NetError::ERR_CREATE_UNIT_02;		///< transaction error
-		kAck.m_kUnitInfo.m_wstrNickName	= kReq.m_wstrNickName;
-		kAck.m_kUnitInfo.m_cUnitClass	= (char)kReq.m_iClass;
-
-		return Reply( kSes, EGS_CREATE_UNIT_ACK, kAck );
+		kAck.m_kUnitInfo.m_wstrNickName	= wstrNickName;
+		kAck.m_kUnitInfo.m_cUnitClass	= (char)iClass;
+		return;
 	}
 
 	// The class's starting skills. dbo.gup_create_unit's own four skill IDs
@@ -215,9 +300,80 @@ bool CX2OfflineServer::Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const
 
 	CX2OfflineLog::Server( L"CREATE   '%s' class=%d -> unitUID=%I64d",
 		kRow.m_wstrNickName.c_str(), kRow.m_iUnitClass, (__int64)kRow.m_nUnitUID );
+}
+//}}
+
+bool CX2OfflineServer::Handler_EGS_CREATE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_CREATE_UNIT_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
+		return false;
+
+	KEGS_CREATE_UNIT_ACK kAck;
+	BuildCreateUnitAck( kSes, kReq.m_wstrNickName, kReq.m_iClass, kAck );
 
 	return Reply( kSes, EGS_CREATE_UNIT_ACK, kAck );
 }
+
+//////////////////////////////////////////////////////////////////////////
+//{{ Iruha : 2026-09-09 // REFORM_ENTRY_POINT's character-creation leg - see
+// the block comment above BuildCreateUnitAck.
+
+bool CX2OfflineServer::Handler_EGS_CREATE_NEW_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_CREATE_NEW_UNIT_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
+		return false;
+
+	KEGS_CREATE_UNIT_ACK kAck;
+	BuildCreateUnitAck( kSes, kReq.m_wstrNickName, kReq.m_iClass, kAck );
+
+	// The client's ACK handler is unconditional, not #ifdef REFORM_ENTRY_POINT -
+	// see Handler_EGS_CREATE_UNIT_ACK in X2Lib/X2StateCreateUnit.cpp.
+	return Reply( kSes, EGS_CREATE_UNIT_ACK, kAck );
+}
+
+// CX2StateCreateUnit::SCUUCM_NICKNAME_CHECK sends this before the create-unit
+// button becomes reachable at all. KEGS_ENTRY_POINT_CHECK_NICK_NAME_ACK is a
+// typedef of the old KEGS_CHECK_NICK_NAME_ACK (ClientPacket.h) - m_iOK must be
+// NetError::NET_OK for CX2Main::IsValidPacket to accept it and let the player
+// proceed to the Yes/No create-unit confirmation dialog.
+bool CX2OfflineServer::Handler_EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_ENTRY_POINT_CHECK_NICK_NAME_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	if( false == EnsureAccount( kSes, kSes.m_wstrLoginID ) )
+		return false;
+
+	KEGS_ENTRY_POINT_CHECK_NICK_NAME_ACK kAck;
+	kAck.m_iOK			= NetError::NET_OK;
+	kAck.m_iUnitUID		= 0;
+	kAck.m_wstrNickName	= kReq.m_wstrNickName;
+
+	int iError = NetError::NET_OK;
+
+	if( false == IsAcceptableNickName( kReq.m_wstrNickName, iError ) )
+	{
+		kAck.m_iOK = iError;
+	}
+	else if( true == CX2OfflineDB::Instance()->IsNickNameTaken( kReq.m_wstrNickName ) )
+	{
+		kAck.m_iOK = NetError::ERR_CREATE_UNIT_01;		///< nickname already exists
+	}
+
+	CX2OfflineLog::Server( L"NICKCHECK '%s' -> m_iOK=%d", kReq.m_wstrNickName.c_str(), kAck.m_iOK );
+
+	return Reply( kSes, EGS_ENTRY_POINT_CHECK_NICK_NAME_ACK, kAck );
+}
+//}}
 
 //////////////////////////////////////////////////////////////////////////
 

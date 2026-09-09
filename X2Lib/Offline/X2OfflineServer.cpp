@@ -544,11 +544,26 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	case EGS_DISCONNECT_FOR_SERVER_SELECT_REQ:
 											return Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ( kSes, kEvent );
 
+	//{{ Iruha : 2026-09-09 // Phase 3B - REFORM_ENTRY_POINT's channel-list leg
+	case EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ:
+											return Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ( kSes, kEvent );
+	//}}
+
 	//////////////////////////////////////////////////////////////////////////
 	// character CRUD - Handlers_Unit.cpp
 	case EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ:
 											return Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ( kSes, kEvent );
+	//{{ Iruha : 2026-09-09 // Phase 3B - REFORM_ENTRY_POINT's character-list leg
+	case EGS_CHARACTER_LIST_REQ:			return Handler_EGS_CHARACTER_LIST_REQ( kSes, kEvent );
+	case EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ:
+											return Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ( kSes, kEvent );
+	//}}
 	case EGS_CREATE_UNIT_REQ:				return Handler_EGS_CREATE_UNIT_REQ( kSes, kEvent );
+	//{{ Iruha : 2026-09-09 // REFORM_ENTRY_POINT's character-creation leg
+	case EGS_CREATE_NEW_UNIT_REQ:			return Handler_EGS_CREATE_NEW_UNIT_REQ( kSes, kEvent );
+	case EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ:
+											return Handler_EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ( kSes, kEvent );
+	//}}
 	case EGS_DELETE_UNIT_REQ:				return Handler_EGS_DELETE_UNIT_REQ( kSes, kEvent );
 	case EGS_FINAL_DELETE_UNIT_REQ:			return Handler_EGS_FINAL_DELETE_UNIT_REQ( kSes, kEvent );
 	case EGS_RESTORE_UNIT_REQ:				return Handler_EGS_RESTORE_UNIT_REQ( kSes, kEvent );
