@@ -377,17 +377,19 @@ bool CX2OfflineServer::Handler_EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ( KOfflineSess
 
 //////////////////////////////////////////////////////////////////////////
 
-bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+//{{ Iruha : 2026-09-10 // Shared by both delete requests - see the block
+// comment above BuildCreateUnitAck for why one request shape's handler ends up
+// calling into a builder the other handler also uses. KEGS_DELETE_UNIT_REQ and
+// KEGS_ENTRY_POINT_DELETE_UNIT_REQ carry the same m_iUnitUID; the entry-point
+// version's extra m_iUserUID/m_iServerGroup fields are ignored in favour of
+// kSes.m_nUserUID, same as every other handler here trusts the session over a
+// client-supplied user id.
+void CX2OfflineServer::BuildDeleteUnitAck( KOfflineSession& kSes, UidType iUnitUID, OUT KEGS_DELETE_UNIT_ACK& kAck )
 {
-	KEGS_DELETE_UNIT_REQ kReq;
-	if( false == ReadReq( kEvent, kReq ) )
-		return false;
-
 	CX2OfflineDB* pDB = CX2OfflineDB::Instance();
 
-	KEGS_DELETE_UNIT_ACK kAck;
 	kAck.m_iOK				= NetError::ERR_DELETE_UNIT_00;		///< no such character
-	kAck.m_iUnitUID			= kReq.m_iUnitUID;
+	kAck.m_iUnitUID			= iUnitUID;
 	kAck.m_uiKNMSerialNum	= 0;
 	kAck.m_iGuildUID		= 0;
 	kAck.m_ucLevel			= 0;
@@ -396,8 +398,8 @@ bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const
 	kAck.m_tDelAbleDate		= 0LL;
 
 	KOfflineUnitRow kRow;
-	if( false == pDB->LoadUnit( kReq.m_iUnitUID, kRow ) || kRow.m_nUserUID != kSes.m_nUserUID )
-		return Reply( kSes, EGS_DELETE_UNIT_ACK, kAck );
+	if( false == pDB->LoadUnit( iUnitUID, kRow ) || kRow.m_nUserUID != kSes.m_nUserUID )
+		return;
 
 	kAck.m_wstrNickName	= kRow.m_wstrNickName;
 	kAck.m_ucLevel		= (u_char)kRow.m_iLevel;
@@ -410,7 +412,7 @@ bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const
 		kAck.m_iOK				= NetError::ERR_DELETE_UNIT_01;
 		kAck.m_tReDelAbleDate	= CX2OfflineDB::DelAbleDate( kRow.m_tDelDate );
 
-		return Reply( kSes, EGS_DELETE_UNIT_ACK, kAck );
+		return;
 	}
 
 	__int64 tNow = (__int64)::_time64( NULL );
@@ -419,10 +421,10 @@ bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const
 	// character-select screen can still draw the slot; the name itself is
 	// released for reuse because IsNickNameTaken() only looks at live units,
 	// which is what dbo.gup_delete_unit achieves by nulling GUnitNickName.
-	if( false == pDB->SoftDeleteUnit( kReq.m_iUnitUID, tNow ) )
+	if( false == pDB->SoftDeleteUnit( iUnitUID, tNow ) )
 	{
 		kAck.m_iOK = NetError::ERR_DELETE_UNIT_05;		///< delete failed
-		return Reply( kSes, EGS_DELETE_UNIT_ACK, kAck );
+		return;
 	}
 
 	kAck.m_iOK			= NetError::NET_OK;
@@ -431,9 +433,35 @@ bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const
 	CX2OfflineLog::Server( L"DELETE   '%s' (unitUID=%I64d) pending, final delete from %s",
 		kRow.m_wstrNickName.c_str(), (__int64)kRow.m_nUnitUID,
 		CX2OfflineDB::FormatDate( kAck.m_tDelAbleDate ).c_str() );
+}
+
+bool CX2OfflineServer::Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_DELETE_UNIT_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KEGS_DELETE_UNIT_ACK kAck;
+	BuildDeleteUnitAck( kSes, kReq.m_iUnitUID, kAck );
 
 	return Reply( kSes, EGS_DELETE_UNIT_ACK, kAck );
 }
+
+bool CX2OfflineServer::Handler_EGS_ENTRY_POINT_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_ENTRY_POINT_DELETE_UNIT_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KEGS_DELETE_UNIT_ACK kAck;
+	BuildDeleteUnitAck( kSes, kReq.m_iUnitUID, kAck );
+
+	// Handler_EGS_DELETE_UNIT_REQ (X2Lib/X2StateServerSelect.cpp) waits on
+	// EGS_DELETE_UNIT_ACK regardless of which request it sent - there is no
+	// separate ENTRY_POINT ack type for delete.
+	return Reply( kSes, EGS_DELETE_UNIT_ACK, kAck );
+}
+//}}
 
 //////////////////////////////////////////////////////////////////////////
 

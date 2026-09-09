@@ -607,6 +607,8 @@ private:
 	void BuildCreateUnitAck( KOfflineSession& kSes, const std::wstring& wstrNickName,
 		int iClass, OUT KEGS_CREATE_UNIT_ACK& kAck );
 	bool Handler_EGS_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_ENTRY_POINT_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	void BuildDeleteUnitAck( KOfflineSession& kSes, UidType iUnitUID, OUT KEGS_DELETE_UNIT_ACK& kAck );
 	bool Handler_EGS_FINAL_DELETE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_RESTORE_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const KEvent& kEvent );

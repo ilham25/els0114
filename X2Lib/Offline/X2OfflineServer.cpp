@@ -565,6 +565,12 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 											return Handler_EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ( kSes, kEvent );
 	//}}
 	case EGS_DELETE_UNIT_REQ:				return Handler_EGS_DELETE_UNIT_REQ( kSes, kEvent );
+	//{{ Iruha : 2026-09-10 // REFORM_ENTRY_POINT's delete leg - see
+	// Handler_EGS_DELETE_UNIT_REQ in X2StateServerSelect.cpp, which sends this
+	// instead of EGS_DELETE_UNIT_REQ now that REFORM_ENTRY_POINT is
+	// unconditionally on, but still waits on the same EGS_DELETE_UNIT_ACK.
+	case EGS_ENTRY_POINT_DELETE_UNIT_REQ:	return Handler_EGS_ENTRY_POINT_DELETE_UNIT_REQ( kSes, kEvent );
+	//}}
 	case EGS_FINAL_DELETE_UNIT_REQ:			return Handler_EGS_FINAL_DELETE_UNIT_REQ( kSes, kEvent );
 	case EGS_RESTORE_UNIT_REQ:				return Handler_EGS_RESTORE_UNIT_REQ( kSes, kEvent );
 	case EGS_SELECT_UNIT_REQ:				return Handler_EGS_SELECT_UNIT_REQ( kSes, kEvent );
