@@ -9,7 +9,7 @@ the build commands and is the other document a fresh session should read.
 | Phase | What | State |
 |---|---|---|
 | 0 | Baseline, build wiring, docs | **DONE** 2026-09-09 |
-| 1 | Flag definitions and tuning constants | not started |
+| 1 | Flag definitions and tuning constants | **DONE** 2026-09-09 |
 | 2 | Offline build wiring + the socket seam | not started |
 | 3 | Emulator standup + client revivals | not started |
 | 3B | The entry-point character-select handshake | not started |
@@ -699,6 +699,66 @@ is not a prerequisite for any phase.
 byte-identical to the `x2.exe` deployed in
 `F:\elsword stuff\elsword_2014\els_2014\237311\24965799\data`. The vanilla March
 client builds and runs. **Any breakage after Phase 0 is ours.**
+
+## What Phase 1 established
+
+All 13 `SERV_IRUHADEV_*` flags now exist in `KTDXLIB/Always.h`, appended
+byte-hand (extracted in ASCII from `c4495a3`, no merge) after the country-select
+`#include` chain that was already the file's tail. The five tuning `const`
+blocks that back `MP_REGEN_BOOST`, `AIPARTY_PERSIST` and the two offline reward
+flags went into `X2Lib/X2Define.h` the same way. No call site references any of
+them yet - `git grep SERV_IRUHADEV_ -- X2Lib X2 KTDXLIB X2ServerProtocol`
+(source only, per the *Stale dead-config* grep hazard above) turns up nothing
+outside the already-orphaned `X2Lib/Offline/` tree and
+`X2ServerProtocol/OfflineHook.h` - so this phase could not have changed the
+vanilla build's behavior, and didn't: `X2Lib`, `KTDXLIB` (rebuilt transitively
+as a project reference) and `X2` all rebuilt clean, and
+`X2/US_INTERNAL/x2.exe` came out freshly dated with the same warning set as
+before, no new errors.
+
+**`STATIC_AUTO_LOGIN` is retired, not restored.** `KTDXLIB/OnlyGlobal/Always_US.h`
+is untouched this phase. Reasoning: `AUTO_LOGIN_IN_HOUSE` is now live under
+`US_INTERNAL` for the first time (see *What Phase 0 established*) and its
+`CX2StateLogin::ReadIDAndPassword` runs unconditionally on entering the login
+state - it reads `LoginKey.lua` (or, with a confirmation dialog,
+`LoginKeyEx.lua`) through the mass-file manager for an `ID`/`PASSWORD` pair and
+signs in with it, which is the same "skip the login screen, sign in as a fixed
+account" behavior `STATIC_AUTO_LOGIN` provided. Restoring `STATIC_AUTO_LOGIN` on
+top would be a second, redundant mechanism, and it carries the two defects
+`MODS.md` already flagged it for - it isn't `SERV_IRUHADEV_`-prefixed, and it
+lives in a `CLIENT_COUNTRY_US`-only file rather than `Always.h` - plus a third:
+its account password ships in plaintext inside a compiled, tracked header,
+where `LoginKey.lua` is an external data file that never has to be. To get the
+same auto-login today, drop a `LoginKey.lua` next to the exe with a `LOGIN`
+table's `ID` and `PASSWORD` strings - loose files now beat the `.kom` archive
+unconditionally (see *Loose-file precedence has inverted* above), so no
+repacking is needed for this one. `MODS.md`'s `STATIC_AUTO_LOGIN` row and
+*Known deviations to clean up* section have been updated to match.
+
+Two comments were corrected while restoring, both our own text rather than
+studio bytes, so fixing them isn't a Trap-1 violation:
+
+- The `SERV_IRUHADEV_OFFLINE` block's build note used to say the flag must
+  also be set in `X2ServerProtocol_2010.vcxproj`'s "`US_SERVICE`
+  PreprocessorDefinitions" - that config name is gone (Phase 0). It now says
+  `X2TOOL|Win32`, which is what `US_INTERNAL` actually maps onto for that
+  project, and points at Phase 2 rather than repeating the toggle-both-sides
+  detail inline.
+- The `SERV_IRUHADEV_LEVEL_CAP_80` block cited `Always_US.h:75` and a retail
+  cap of `67`; the March snapshot moved `USE_MAXLEVEL_LIMIT_VAL` to
+  `Always_US.h:126` and raised the studio's own cap to `70`. It also cited
+  `X2UIPersonalShopBoard.h:12` as a second expansion site - that header no
+  longer references the macro at all under March; only `X2Game.h:34` does, and
+  `X2UIPersonalShopBoard.cpp` reads the resulting `_CONST_X2GAME_::g_iMaxLevel`
+  directly. The comment now says so instead of citing a line that no longer
+  exists. `X2Define.h`'s dead `LIMIT_MAX_LEVEL` is `70` now too (studio's
+  change, coincidentally matching the new floor) but is still unreferenced by
+  any code, so it's still left alone.
+
+Verification gate ran clean on both files: `file` reports the same encoding as
+before the edit for each (`Non-ISO extended-ASCII` for `Always.h`, `ISO-8859`
+for `X2Define.h`); `git diff --stat` shows insertions only, no deletions, on
+both; and the Trap-2 flag-token diff printed nothing for either file.
 
 ## Phase 3B - the entry-point handshake, in full
 

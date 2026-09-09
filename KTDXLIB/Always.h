@@ -3439,3 +3439,219 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #elif defined( CLIENT_COUNTRY_IN )
 #	include "OnlyGlobal/Always_IN.h"
 #endif
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-25
+// Description: Allow learning both skills in a 2-choice skill tree row instead of locking the unchosen one
+#define SERV_IRUHADEV_SKILLTREE_NO_LOCK
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-25
+// Description: Skill Slot B is open by default and permanent, no medal purchase required
+#define SERV_IRUHADEV_SKILL_SLOT_B_FREE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-25
+// Description: Show a small remaining-seconds countdown drawn over each buff/debuff icon on the status HUD
+#define SERV_IRUHADEV_BUFF_DURATION_TEXT
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-27
+// Description: All 6 equipped consumable quick slots are open by default, no cash ticket required
+#define SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-31
+// Description: Offline mode - emulate the game/channel servers in-process,
+//              persist all player state to a local SQLite file (els_db.sql).
+//              NOTE: X2ServerProtocol does NOT include KTDX.h, so this flag
+//              must ALSO be set in X2ServerProtocol_2010.vcxproj's
+//              X2TOOL|Win32 PreprocessorDefinitions - the solution maps
+//              US_INTERNAL onto X2TOOL for that project (see Phase 2 of
+//              MARCH_2014_MIGRATION.md). Toggle both together.
+#define SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Refresh the top-left gage portrait when a quest changes the
+//              character's class. The quest path resets the 3D square unit
+//              but never the gage, so the HUD keeps drawing the old class
+//              until the gage is rebuilt on a state change. Every other
+//              class-change path in the client already refreshes it.
+#define SERV_IRUHADEV_JOBCHANGE_PORTRAIT
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Launch x2.exe without the patcher token in argv[1], so the
+//              exe can be started directly (double-click, a debugger, a
+//              shortcut) and not only through a launcher that knows the
+//              string. See X2/X2.cpp - the token itself is still
+//              PATCHER_RUN_ONLY, it is just no longer read out of argv.
+#define SERV_IRUHADEV_NO_PATCHER_TOKEN
+//////////////////////////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-04
+// Description: Quality of life - raise the base MP regeneration rate for
+//              player units from the class Lua's MP_CHANGE_RATE (1 MP/s)
+//              to SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC in X2Lib/X2Define.h.
+//              Applied as a floor on the base rate, so skill, passive,
+//              socket, charge-state and title bonuses still stack on top
+//              of it and a class whose Lua already asks for more keeps it.
+#define SERV_IRUHADEV_MP_REGEN_BOOST
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: AI_PARTY_PLAN.md phase 2. Keep the AI party ACROSS a stage
+//              change instead of rebuilding it, which is what a real
+//              multiplayer party does: party members are built once at
+//              dungeon entry and every later stage only repositions them
+//              (CX2DungeonGame::StageLoading walks m_UserUnitList calling
+//              InitPosition). Our bots are NPCs, so StageLoading's
+//              DeleteAllNPCUnit killed all three at every stage and the
+//              spawn had to run again - a packet round trip plus three
+//              CX2GUNPC constructions, landing after the loading curtain
+//              had already lifted. With this defined a living bot survives
+//              that sweep, the way a monster-card summon already does, and
+//              is repositioned onto the new stage's line map instead.
+//              Meaningless without SERV_IRUHADEV_OFFLINE - the AI party
+//              only exists there - so it is defined under it rather than
+//              beside it, and the call sites can test this one alone.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_AIPARTY_PERSIST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Offline quality-of-life. Multiply every EXP and ED reward
+//              the offline server pays by SERV_IRUHADEV_OFFLINE_EXP_RATE
+//              and SERV_IRUHADEV_OFFLINE_ED_RATE (X2Lib/X2Define.h).
+//              Solo offline play has none of the live server's rate
+//              bonuses - party, PC bang, premium, event and channel EXP
+//              are all either display-only or not compiled in offline
+//              (X2OfflineDropTable.h:99) - so the curve is the full
+//              retail one with nothing on top of it. Applied at the one
+//              point every stored and displayed EXP figure derives from,
+//              so the DB, the in-game bar and the result screen agree.
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined
+//              under it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_EXP_BOOST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-06
+// Description: Offline quality-of-life. Repeat the drop lottery
+//              SERV_IRUHADEV_OFFLINE_DROP_DRAWS times per kill instead of
+//              once, which is how the studio's own drop rate event works
+//              (KncWX2Server/CenterServer/KDropTable.cpp:1284, under
+//              SERV_ITEM_DROP_EVENT). Scaling the probabilities instead
+//              would NOT give 3x: CX2OfflineDropTable::Decide is a single
+//              weighted pick over one accumulated list, so a row that
+//              already sums near 100 percent saturates and every case
+//              listed after that point becomes unreachable. The quest
+//              collection item roll IS a real per-item roll, so that one
+//              is scaled directly by SERV_IRUHADEV_OFFLINE_QUEST_ITEM_RATE.
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined
+//              under it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_DROP_BOOST
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-08
+// Description: Raise the client level cap from the US retail 70 to 80.
+//
+//              The cap is a single compile-time constant: Always_US.h:126
+//              defines USE_MAXLEVEL_LIMIT_VAL as `const int g_iMaxLevel =
+//              70;` and X2Game.h:34 expands it into _CONST_X2GAME_::g_iMaxLevel,
+//              which X2UIPersonalShopBoard.cpp reads directly (no longer via
+//              its own header, as of the March snapshot). Redefining the
+//              macro here - after the OnlyGlobal include just above and
+//              before any X2Lib header sees it - moves that one copy, and
+//              leaves the studio's own definition standing above as the
+//              #else branch.
+//
+//              The data for 80 is already shipped, which is why this is only
+//              a constant:
+//                - ExpTable.lua (packed in data036) carries rows through
+//                  LEVEL = 80, TOTAL_EXP = 986793900 - inside int range.
+//                - StatTable.lua does ReserveMemory( class, 80 ) and has a
+//                  SetUnitStat row at level 80 for every player class, and
+//                  CX2OfflineStatTable::MAX_LEVEL is already 80 to match.
+//                - SkillData.lua's CalcLevelUpIncreaseSkillPoint is a formula
+//                  ( level / 10 + 4 ), not a table, so SP keeps accruing.
+//
+//              Offline mode reads the cap in exactly two places and both
+//              follow automatically: CX2OfflineServer::ApplyDungeonReward
+//              stops levelling at it, and the level-up scroll handler refuses
+//              at it. X2Define.h's LIMIT_MAX_LEVEL (70, matching the new
+//              retail cap by coincidence, not by reference) is still dead -
+//              nothing but comments reference it - so it is deliberately
+//              left alone.
+//
+//              A live server would also need GameSysValTable.lua's MAXLevel
+//              raised (SiKGameSysVal()->GetLimitsLevel()); offline has no
+//              GameSysVal and never sends EGS_UPDATE_MAX_LEVEL_NOT, so
+//              CX2InstanceData::m_iMaxLevel just keeps its g_iMaxLevel seed.
+#define SERV_IRUHADEV_LEVEL_CAP_80
+
+#ifdef SERV_IRUHADEV_LEVEL_CAP_80
+#	undef  USE_MAXLEVEL_LIMIT_VAL
+#	define USE_MAXLEVEL_LIMIT_VAL const int g_iMaxLevel = 80;
+#endif SERV_IRUHADEV_LEVEL_CAP_80
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-08
+// Description: Offline quality-of-life, QUALITY_OF_LIFE.md #7. Every pet
+//              that is past its crystal stage reports the fetch aura (the
+//              pet item-pickup skill, PET_DROP_ITEM_PICKUP) as already
+//              unlocked, so item 500720 never has to be bought.
+//
+//              Forced in CX2OfflineServer's MakePetInfo, where the client
+//              reads the flag, and NOT in the save: unit_pet.auto_looting
+//              keeps whatever was actually purchased, so undefining this
+//              define restores the bought-toggle behaviour exactly, with
+//              no migration. Handler_EGS_USE_ITEM_IN_INVENTORY_REQ refuses
+//              500720 while it is defined rather than eating an item that
+//              can no longer change anything.
+//
+//              "Except the pet still in crystal" is the game's own test and
+//              not a guess: PetData.lua's PET_STATUS is 0 for a crystal
+//              step, and both the pet window's aura button
+//              (X2UIPetInfo.cpp:2019-2043) and the live server's own
+//              ERR_PET_27 gate read exactly that. A crystal pet keeps the
+//              stored value, which is false.
+//
+//              Meaningless without SERV_IRUHADEV_OFFLINE, so defined under
+//              it rather than beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
