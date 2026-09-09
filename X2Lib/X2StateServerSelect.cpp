@@ -2,6 +2,12 @@
 #ifndef ELSWORD_NEW_BEGINNING
 #include ".\x2stateserverselect.h"
 
+//{{ Iruha : 2026-08-31 // offline mode
+#ifdef SERV_IRUHADEV_OFFLINE
+#include "OfflineHook.h"
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 bool CX2StateServerSelect::m_sbSelectedServerSet = false;
 #ifdef FIX_REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 bool CX2StateServerSelect::m_bCanNotConenctToBusyServer = false;		// 해당 서버로 재진입 할 수 없다는 메시지 박스를 띄울 것인가?
@@ -8394,6 +8400,27 @@ bool CX2StateServerSelect::Handler_ENX_USER_LOGIN_NOT( HWND hWnd, UINT uMsg, WPA
 
 bool CX2StateServerSelect::Handler_KXPT_PORT_CHECK_REQ()
 {
+//{{ Iruha : 2026-08-31 // offline mode - there is no server to echo the UDP
+//            port check off. It is a raw UDP struct (Socket/LBSUdpEcho.cpp),
+//            not a KEvent, so the offline hook never sees it; without this the
+//            client burns 10 retries (~30s) before falling through to the same
+//            local-address fallback by itself.
+#ifdef SERV_IRUHADEV_OFFLINE
+	if( g_pX2OfflineHook != NULL )
+	{
+		m_bPortCheckWait		= false;
+		m_fPortCheckWaitTime	= 0.0f;
+		m_PortCheckRetryTime	= 0;
+
+		KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
+		kXPT_PORT_CHECK_ACK.m_IPAddress	= g_pData->GetGameUDP()->GetMyIPAddress();
+		kXPT_PORT_CHECK_ACK.m_Port		= g_pData->GetGameUDP()->GetMyPort();
+
+		return Handler_KXPT_PORT_CHECK_ACK( kXPT_PORT_CHECK_ACK );
+	}
+#endif SERV_IRUHADEV_OFFLINE
+//}}
+
 	m_bPortCheckWait			= true;
 	m_fPortCheckWaitTime		= 0.5f;
 

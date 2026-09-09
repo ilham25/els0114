@@ -180,6 +180,26 @@ offline_packets.log, and creates a fresh els_db.sql. Use a throwaway save
 here - the real one migrates in Phase 7.
 ```
 
+**Decision recorded (2026-09-09): the UDP port-check revival is NOT redundant
+with `NOT_USE_UDP_CHECK_INHOUSE`.** Confirmed via grep in `X2Lib/X2Game.cpp`
+and `X2Lib/X2StateServerSelect.cpp`: `NOT_USE_UDP_CHECK_INHOUSE` only gates an
+early return in `CX2Game::AbuserUserCheck`, an in-match anti-cheat check.
+`Handler_KXPT_PORT_CHECK_REQ` in `X2StateServerSelect.cpp` is a completely
+separate mechanism - the server-select NAT/port-check handshake, driven by a
+raw UDP struct (`Socket/LBSUdpEcho.cpp`) rather than a `KEvent`, so the offline
+hook never sees it and the client would otherwise burn 10 retries (~30s)
+before falling through to the local-address fallback on its own. Restored it.
+
+**Phase 3 done (2026-09-09).** All four files restored (X2Data.cpp,
+X2DungeonSubStage.cpp, X2StateServerSelect.cpp; X2QuestManager.cpp/.h were
+already restored ahead of schedule by the Phase 2 commit). Build succeeded
+(x2.exe 22,357,504 bytes). Deployed as X2_offline.exe and launched from the
+game directory: it wrote offline_server.log and offline_packets.log and
+created a fresh els_db.sql, satisfying this phase's done-when exactly.
+offline_packets.log confirms the boundary Phase 3B exists to fix: the client
+gets through CH verify-account and GS connect/login/server-select cleanly,
+then `EGS_CHARACTER_LIST_REQ` comes back `*** UNHANDLED ***`, as expected.
+
 **Phase 3B - The entry-point character-select handshake**
 
 ```
