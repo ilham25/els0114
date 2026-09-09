@@ -206,12 +206,15 @@ void CX2OfflineSocketTable::EnsureLoaded()
 	}
 	else
 	{
-		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+		//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+		//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+		//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+		bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_SOCKET_TABLE );
 
 		if( false == bRan || m_iGroupRows <= 0 )
 		{
-			bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript(
-						kInfo->pRealData, kInfo->size ) );
+			bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_SOCKET_TABLE, false );
+			//}}
 
 			if( true == bRan && m_iGroupRows > 0 )
 			{

@@ -339,6 +339,16 @@ public:
     const CX2TitleManager::MissionTemplet* GetMissionInfo( int iMissionID );
     const CX2TitleManager::SubMissionTemplet* GetSubMissionInfo( int iSubMissionID );
 
+#ifdef SERV_IRUHADEV_OFFLINE
+	//{{ Iruha : 2026-09-09 // the March upgrade dropped this whole-map accessor,
+	//            leaving only the per-ID GetMissionInfo above. The real server
+	//            never needed one back - only the client did, to notice which
+	//            missions just became available - and that job moved here, to
+	//            the offline emulator (X2OfflineTitle.cpp), since there is no
+	//            server to do it. m_mapTitleMission itself stays private.
+	const std::map< int, CX2TitleManager::MissionTemplet >&	GetMapTitleMission() const { return m_mapTitleMission; }
+#endif SERV_IRUHADEV_OFFLINE
+
     void TakeTitle(std::vector<KTitleInfo> vecTitleInfo);
     bool UpdateTitle(KTitleInfo ktitleInfo, int iState);
     bool UpdateTitle(int iTitleId, int iState, bool bInfinity = true);

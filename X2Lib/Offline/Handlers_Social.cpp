@@ -1178,7 +1178,15 @@ bool CX2OfflineServer::Handler_EGS_GET_ITEM_FROM_LETTER_REQ( KOfflineSession& kS
 	// SERV_TRADE_LOGIC_CHANGE_LETTER. ClientPacket.h:4505 is its #else twin and
 	// has m_cLetterType instead - reading that one first cost this phase a
 	// compile.
-	kAck.m_bSystemLetter = false;
+	//
+	// Update, 2026-09-09: March flipped SERV_TRADE_LOGIC_CHANGE_LETTER off
+	// (ServerDefine.h:3053, now commented out), so ClientPacket.h's #else
+	// branch is the one that's actually reachable now - and with
+	// SERV_RELATIONSHIP_SYSTEM on (ServerDefine.h:3643) that branch's own
+	// field is m_cLetterType, not m_bSystemLetter. 0 is
+	// KPostItemInfo::LT_POST_OFFICE, the same "ordinary letter" default the
+	// field's own constructor uses elsewhere (ServerPacket.h:3423).
+	kAck.m_cLetterType = 0;
 	//}}
 
 	return Reply( kSes, EGS_GET_ITEM_FROM_LETTER_ACK, kAck );

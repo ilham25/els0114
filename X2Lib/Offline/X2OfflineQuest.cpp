@@ -617,7 +617,7 @@ int CX2OfflineQuest::GetCompleteCount( int iQuestID ) const
 
 	std::wstring wstrOut;
 
-	std::set< CX2Dungeon::DUNGEON_ID >::const_iterator sit;
+	std::set< SEnum::DUNGEON_ID >::const_iterator sit;
 	for( sit = pSub->m_ClearCondition.m_setDungeonID.begin();
 		 sit != pSub->m_ClearCondition.m_setDungeonID.end(); ++sit )
 	{
@@ -644,7 +644,7 @@ int CX2OfflineQuest::GetCompleteCount( int iQuestID ) const
 	{
 		return pSub->m_ClearCondition.m_setDungeonID.end() !=
 			   pSub->m_ClearCondition.m_setDungeonID.find(
-					(CX2Dungeon::DUNGEON_ID)iDungeonID );
+					(SEnum::DUNGEON_ID)iDungeonID );
 	}
 
 	// "this dungeon at this difficulty or harder". The script packs the two
@@ -653,7 +653,7 @@ int CX2OfflineQuest::GetCompleteCount( int iQuestID ) const
 	const int iUserDungeon	= iDungeonID / 10;
 	const int iUserDiff		= iDungeonID % 10;
 
-	std::set< CX2Dungeon::DUNGEON_ID >::const_iterator sit;
+	std::set< SEnum::DUNGEON_ID >::const_iterator sit;
 	for( sit = pSub->m_ClearCondition.m_setDungeonID.begin();
 		 sit != pSub->m_ClearCondition.m_setDungeonID.end(); ++sit )
 	{

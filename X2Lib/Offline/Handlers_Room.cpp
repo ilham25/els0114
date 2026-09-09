@@ -1066,8 +1066,13 @@ bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes,
 	kSeed.m_DifficultyLevel	= (char)CX2Dungeon::DL_NORMAL;
 	kSeed.m_fPlayTime		= 0.0f;			///< a field has no clock
 
+	//{{ Iruha : 2026-09-09 // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX is now
+	//            on, so KEGS_JOIN_BATTLE_FIELD_REQ's three flat fields folded
+	//            into m_kBattleFieldJoinInfo (a KBattleFieldJoinInfo) - see
+	//            ClientPacket.h/CommonPacket.h. Read through it instead.
 	KOfflineUnitRow kRow;
-	if( false == OpenRoom( kSes, (int)CX2Room::RT_BATTLE_FIELD, kSeed, kReq.m_iBattleFieldID, kRow ) )
+	if( false == OpenRoom( kSes, (int)CX2Room::RT_BATTLE_FIELD, kSeed, kReq.m_kBattleFieldJoinInfo.m_iBattleFieldID, kRow ) )
+	//}}
 	{
 		// Unlike EGS_STATE_CHANGE_FIELD_ACK, the failure path here does not
 		// re-send - CX2State::Handler_EGS_JOIN_BATTLE_FIELD_ACK just returns
@@ -1080,8 +1085,8 @@ bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes,
 	}
 
 	kAck.m_kBattleFieldJoinInfo.Initialize();
-	kAck.m_kBattleFieldJoinInfo.m_iBattleFieldID	= kReq.m_iBattleFieldID;
-	kAck.m_kBattleFieldJoinInfo.m_iStartPosIndex	= kReq.m_StartPosIndex;
+	kAck.m_kBattleFieldJoinInfo.m_iBattleFieldID	= kReq.m_kBattleFieldJoinInfo.m_iBattleFieldID;
+	kAck.m_kBattleFieldJoinInfo.m_iStartPosIndex	= kReq.m_kBattleFieldJoinInfo.m_iStartPosIndex;
 	kAck.m_kBattleFieldJoinInfo.m_bMoveForMyParty	= false;
 
 	// A battlefield is ALREADY PLAYING when you join it, and both of these have
@@ -1108,7 +1113,10 @@ bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes,
 	MakeRoomSlots( kRow, (int)CX2Room::SS_PLAY, kAck.m_vecSlot );
 
 	kAck.m_wstrCNIP			= CENTER_IP;
-	kAck.m_iLastTouchIndex	= kRow.m_iLastLineIndex;
+	//{{ Iruha : 2026-09-09 // m_iLastTouchIndex only exists #ifndef
+	//            SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX, which is now on -
+	//            see ClientPacket.h. Nothing replaced it; drop the assignment.
+	//}}
 	kAck.m_iRequireLevel	= 0;
 	kAck.m_iRequireDungeonID= 0;
 	kAck.m_wstrUDPRelayIP	= RELAY_IP;
@@ -1119,11 +1127,11 @@ bool CX2OfflineServer::Handler_EGS_JOIN_BATTLE_FIELD_REQ( KOfflineSession& kSes,
 	// Handler_EGS_GET_MY_INVENTORY_ACK reads unit.last_pos back on the next
 	// login and re-joins the battlefield when it is in the VMI_BATTLE_FIELD_*
 	// range. That is the branch phase 3 said would never fire; it fires now.
-	CX2OfflineDB::Instance()->SaveLastPosition( kRow.m_nUnitUID, kReq.m_iBattleFieldID );
+	CX2OfflineDB::Instance()->SaveLastPosition( kRow.m_nUnitUID, kReq.m_kBattleFieldJoinInfo.m_iBattleFieldID );
 
 	CX2OfflineLog::Server( L"ROOM     battlefield %d room %I64d for unitUID=%I64d (startPos=%d)",
-		kReq.m_iBattleFieldID, (__int64)m_kRoom.m_kInfo.m_RoomUID,
-		(__int64)kRow.m_nUnitUID, kReq.m_StartPosIndex );
+		kReq.m_kBattleFieldJoinInfo.m_iBattleFieldID, (__int64)m_kRoom.m_kInfo.m_RoomUID,
+		(__int64)kRow.m_nUnitUID, kReq.m_kBattleFieldJoinInfo.m_iStartPosIndex );
 
 	return Reply( kSes, EGS_JOIN_BATTLE_FIELD_ACK, kAck );
 }
@@ -1463,7 +1471,7 @@ void CX2OfflineServer::BuildStageNpcData( int iStageID, OUT std::map< int, KNPCL
 
 	// The dungeon ID the client asked to play, difficulty included - the same
 	// key CX2DungeonGame::DungeonLoading uses.
-	const CX2Dungeon::DUNGEON_ID eDungeonID = (CX2Dungeon::DUNGEON_ID)
+	const SEnum::DUNGEON_ID eDungeonID = (SEnum::DUNGEON_ID)
 		( m_kRoom.m_kInfo.m_iDungeonID + (int)m_kRoom.m_kInfo.m_DifficultyLevel );
 
 	// bIsNpcLoad = true is what makes SubStageData::LoadData read NPC_GROUP.
@@ -1649,7 +1657,11 @@ bool CX2OfflineServer::Handler_EGS_DUNGEON_STAGE_LOAD_REQ( KOfflineSession& kSes
 	KEGS_DUNGEON_STAGE_LOAD_NOT kNot;
 	kNot.m_iStageID					= kReq.m_iStageID;
 	kNot.m_iNumMember				= 1;
-	kNot.m_iItemDropEventProbCount	= 0;
+	//{{ Iruha : 2026-09-09 // SERV_DROP_EVENT_RENEWAL is now on, which replaces
+	//            the int count with a float rate on KEGS_DUNGEON_STAGE_LOAD_NOT -
+	//            see ClientPacket.h. 0 becomes 0.0f, same "no event" meaning.
+	kNot.m_fItemDropEventProbRate	= 0.0f;
+	//}}
 	kNot.m_bWithPlayPcBangEvent		= false;
 	kNot.m_mapAttribNpcInfo.clear();	///< attribute monsters are not placed offline
 
@@ -2319,9 +2331,9 @@ static bool IsEventDropDungeon( int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
-	case CX2Dungeon::DI_TUTORIAL_ELSWORD:
-	case CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+	case SEnum::DI_EL_FOREST_GATE_NORMAL:
+	case SEnum::DI_TUTORIAL_ELSWORD:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
 		return false;
 
 	default:
@@ -2331,8 +2343,8 @@ static bool IsEventDropDungeon( int iDungeonID )
 	// CXSLDungeon::IsTCDungeon, spelled the way Handlers_Skill.cpp spells it:
 	// one contiguous range whose upper bound is written as RAVEN_0 + 6 because
 	// this client's enum stops at RAVEN_0.
-	if( iDungeonID >= (int)CX2Dungeon::DI_TRAINING_FREE &&
-		iDungeonID <= (int)CX2Dungeon::DI_TRAINING_RAVEN_0 + 6 )
+	if( iDungeonID >= (int)SEnum::DI_TRAINING_FREE &&
+		iDungeonID <= (int)SEnum::DI_TRAINING_RAVEN_0 + 6 )
 	{
 		return false;
 	}

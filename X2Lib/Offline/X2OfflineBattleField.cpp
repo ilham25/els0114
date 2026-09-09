@@ -131,14 +131,18 @@ bool CX2OfflineBattleField::RunScript( const wchar_t* szName, int& iRowsBefore, 
 
 	iRowsBefore = iRowsNow;
 
-	bool bRan	= ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	bool bRan	= g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName );
 	bool bAdded	= ( iRowsNow > iRowsBefore );
 
 	if( false == bRan || false == bAdded )
 	{
-		bRan	= ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		bRan	= g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName, false );
 		bAdded	= ( iRowsNow > iRowsBefore );
 	}
+	//}}
 
 	if( false == bRan || false == bAdded )
 	{
@@ -281,11 +285,15 @@ void CX2OfflineBattleField::EnsureServerDataLoaded()
 	const int iRateBefore = m_iDangerEventRate;
 	m_iDangerEventRate = -1;
 
-	if( E_FAIL == g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) ||
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	if( false == g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_SERVER_DATA ) ||
 		-1 == m_iDangerEventRate )
 	{
-		g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size );
+		g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_SERVER_DATA, false );
 	}
+	//}}
 
 	UnbindGlobal();
 

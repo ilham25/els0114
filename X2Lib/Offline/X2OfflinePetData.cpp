@@ -82,13 +82,17 @@ bool CX2OfflinePetData::RunScript( const wchar_t* szName, int& iRowCounter )
 
 	const int iBefore = iRowCounter;
 
-	bool bRan	= ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	bool bRan	= g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName );
 	bool bAdded	= ( iRowCounter > iBefore );
 
 	if( false == bRan || false == bAdded )
 	{
-		bRan	= ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		bRan	= g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName, false );
 		bAdded	= ( iRowCounter > iBefore );
+	//}}
 
 		if( true == bRan && true == bAdded )
 		{

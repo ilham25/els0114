@@ -305,11 +305,15 @@ bool CX2OfflineServer::Handler_EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ( KOfflineSessi
 
 	KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK kAck;
 
-	// The server's failure reply is the default-constructed ACK: m_iOK is 0,
-	// which is NET_OK, with an empty slot list. That reads as "nothing changed"
-	// rather than as an error, and the client redraws from its own state - which
-	// is what makes an illegal drag snap back instead of popping a dialog.
-	kAck.m_iOK = NetError::NET_OK;
+	// The server's failure reply is the default-constructed ACK: an empty slot
+	// list. That reads as "nothing changed" rather than as an error, and the
+	// client redraws from its own state - which is what makes an illegal drag
+	// snap back instead of popping a dialog.
+	//{{ Iruha : 2026-09-09 // KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK lost m_iOK
+	//            entirely in the March upgrade - see ClientPacket.h. Nothing
+	//            replaced it; the empty vecInventorySlotInfo alone now carries
+	//            "nothing changed".
+	//}}
 
 	const bool bOK = pInven->MoveItem( (int)kReq.m_cFromSlotType, kReq.m_iFromSlotID,
 									   (int)kReq.m_cToSlotType,   kReq.m_iToSlotID,

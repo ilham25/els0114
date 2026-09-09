@@ -74,10 +74,16 @@ bool CX2OfflineAttribTable::RunScript( const wchar_t* szFileName )
 		return false;
 	}
 
-	if( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) )
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade (LuaCommon/KLuaBinder.h
+	//            now only has bool DoMemoryNotEncrypt); g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - it also picks up
+	//            X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS's new decrypt/decompress order.
+	if( g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szFileName ) )
 		return true;
 
-	if( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) )
+	if( g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szFileName, false ) )
+	//}}
 	{
 		CX2OfflineLog::Server(
 			L"ATTRIB   NOTE '%s' is NOT encrypted - loaded as plaintext. Fine for testing;"

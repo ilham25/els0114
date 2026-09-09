@@ -563,7 +563,28 @@ void CX2OfflineServer::PushSelectUnitNotifications( KOfflineSession& kSes, const
 		CX2OfflineSkill* pSkill = CX2OfflineSkill::Instance();
 
 		pSkill->Load( kRow.m_nUnitUID );
-		pSkill->GetAcquiredSkills( kNot.m_vecSkillAcquired );
+
+		//{{ Iruha : 2026-09-09 // SERV_SKILL_PAGE_SYSTEM is now on, so
+		//            KEGS_SELECT_UNIT_1_NOT carries std::vector<KUserSkillPageData>
+		//            m_vecUserSkillPageData instead of the flat m_vecSkillAcquired
+		//            (CommonPacket.h). KUnitSkillData::Init() already defaults
+		//            m_nActiveSkillPagesNumber/m_nTheNumberOfSkillPagesAvailable to
+		//            1, so wrap the one skill set this build tracks into a single
+		//            page. m_usSkillPoint is what CX2UserSkillTree::SetAcquiredSkill
+		//            copies into the client's unspent-SP display
+		//            (X2UserSkillTree.cpp:505) - it is not derived from level any
+		//            more under this system, so it has to be the persisted balance,
+		//            same as Handler_EGS_GET_SKILL_REQ reads out of kRow.m_iSP.
+		//            Cash skill points are always zero offline - see the file
+		//            header on X2OfflineSkill.h.
+		KUserSkillPageData kSkillPage;
+		pSkill->GetAcquiredSkills( kSkillPage.m_vecUserSkillData );
+		kSkillPage.m_usSkillPoint		= (USHORT)kRow.m_iSP;
+		kSkillPage.m_usCashSkillPoint	= 0;
+
+		kNot.m_vecUserSkillPageData.clear();
+		kNot.m_vecUserSkillPageData.push_back( kSkillPage );
+		//}}
 
 		// Phase 21: the skills a "secret manual" has unlocked. This used to be a
 		// hard clear with a comment saying nothing offline unseals anything -

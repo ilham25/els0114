@@ -135,26 +135,26 @@ static bool IsSkillUseCountedDungeon( int iDungeonID )
 	// CXSLDungeon::IsTutorialDungeon. Only these two of its fourteen entries
 	// survive in this client. The room's own m_bTutorial flag is checked by the
 	// caller as well and is the more reliable of the two.
-	case CX2Dungeon::DI_TUTORIAL_ELSWORD:
-	case CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+	case SEnum::DI_TUTORIAL_ELSWORD:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
 
 	// CXSLDungeon::IsHenirDungeon. The other five Henir spaces are commented
 	// out here exactly as they are in the client's own IsHenirDungeon.
-	case CX2Dungeon::DI_ELDER_HENIR_SPACE:
+	case SEnum::DI_ELDER_HENIR_SPACE:
 
 	// CXSLDungeon::IsRubenDungeon, less DI_RUBEN_SECRET_HELL, which this client
 	// has no enumerator for. The two entries the server itself keeps commented
 	// out are left out for the same reason it leaves them out.
-	case CX2Dungeon::DI_EL_FOREST_WEST_NORMAL:
-	case CX2Dungeon::DI_EL_FOREST_NORTH_NORMAL:
-	case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
-	case CX2Dungeon::DI_EL_FOREST_HELL_NORMAL:
-	case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-	case CX2Dungeon::DI_MONSTER_TEST_NORMAL:
-	case CX2Dungeon::DI_RUBEN_SECRET_COMMON:
-	case CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL:
-	case CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_NORMAL:
-	case CX2Dungeon::DI_RUBEN_SWAMP_NORMAL:
+	case SEnum::DI_EL_FOREST_WEST_NORMAL:
+	case SEnum::DI_EL_FOREST_NORTH_NORMAL:
+	case SEnum::DI_EL_FOREST_GATE_NORMAL:
+	case SEnum::DI_EL_FOREST_HELL_NORMAL:
+	case SEnum::DI_EVENT_KIDDAY_RUBEN:
+	case SEnum::DI_MONSTER_TEST_NORMAL:
+	case SEnum::DI_RUBEN_SECRET_COMMON:
+	case SEnum::DI_RUBEN_EL_TREE_NORMAL:
+	case SEnum::DI_RUBEN_RUIN_OF_ELF_NORMAL:
+	case SEnum::DI_RUBEN_SWAMP_NORMAL:
 		return false;
 
 	default:
@@ -167,8 +167,8 @@ static bool IsSkillUseCountedDungeon( int iDungeonID )
 	// that plus six rather than as a bare 39406: the server's enum runs
 	// RAVEN_0..RAVEN_6 with no explicit values (XSLDungeon.h), and writing the
 	// arithmetic out keeps the derivation visible.
-	if( iDungeonID >= (int)CX2Dungeon::DI_TRAINING_FREE &&
-		iDungeonID <= (int)CX2Dungeon::DI_TRAINING_RAVEN_0 + 6 )
+	if( iDungeonID >= (int)SEnum::DI_TRAINING_FREE &&
+		iDungeonID <= (int)SEnum::DI_TRAINING_RAVEN_0 + 6 )
 	{
 		return false;
 	}

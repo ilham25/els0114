@@ -133,14 +133,18 @@ void CX2OfflineStatTable::EnsureLoaded()
 	//
 	// Lua's own loader takes source or precompiled bytecode, so neither path
 	// cares whether the file went through luac.
-	bool bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	bool bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_NAME );
 
 	if( false == bRan || 0 == m_iRowsLoaded )
 	{
 		m_mapStat.clear();
 		m_iRowsLoaded = 0;
 
-		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_NAME, false );
+	//}}
 
 		if( true == bRan && m_iRowsLoaded > 0 )
 		{

@@ -101,13 +101,17 @@ bool CX2OfflineDropTable::RunScript( const wchar_t* szName )
 	// "produced no rows" and then re-run as plaintext for nothing.
 	const int iRowsBefore = TotalRows();
 
-	bool bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	bool bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName );
 	bool bAdded = ( TotalRows() > iRowsBefore );
 
 	if( false == bRan || false == bAdded )
 	{
-		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), szName, false );
 		bAdded = ( TotalRows() > iRowsBefore );
+	//}}
 
 		if( true == bRan && true == bAdded )
 		{

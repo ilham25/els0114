@@ -51,8 +51,15 @@ public:
 		/// CX2UserSkillTree::MAX_SKILL_SLOT - four A slots then four B slots.
 		MAX_SKILL_SLOT		= CX2UserSkillTree::MAX_SKILL_SLOT,
 
-		/// KUnitSkillData::EQUIPPED_SKILL_SLOT_COUNT
-		SLOT_COUNT_PER_SET	= KUnitSkillData::EQUIPPED_SKILL_SLOT_COUNT,
+		/// KUnitSkillData::EQUIPPED_SKILL_SLOT_COUNT - but CommonPacket.h also
+		//{{ Iruha : 2026-09-09 // #define's a same-named EQUIPPED_SKILL_SLOT_COUNT
+		//            macro (unconditional, value 4) later in the March upgrade;
+		//            that shadows the qualified static-member lookup and expands
+		//            "KUnitSkillData::EQUIPPED_SKILL_SLOT_COUNT" into the syntax
+		//            error "KUnitSkillData::4". Both name the same 4, so use the
+		//            macro directly.
+		SLOT_COUNT_PER_SET	= EQUIPPED_SKILL_SLOT_COUNT,
+		//}}
 	};
 
 	/// The permanent sentinel KUserSkillTree::ExpandSkillSlotB writes under

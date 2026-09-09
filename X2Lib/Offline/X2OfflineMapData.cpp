@@ -110,11 +110,15 @@ void CX2OfflineMapData::EnsureLoaded()
 
 	// Encrypted first (the shipped form), plaintext second (a loose test copy) -
 	// same reasoning as X2OfflineStatTable::EnsureLoaded.
-	m_bScriptRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	m_bScriptRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_NAME );
 
 	if( false == m_bScriptRan )
 	{
-		const bool bPlain = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		const bool bPlain = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_NAME, false );
+	//}}
 
 		if( true == bPlain )
 		{

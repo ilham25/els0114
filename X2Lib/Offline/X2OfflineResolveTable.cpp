@@ -129,13 +129,17 @@ void CX2OfflineResolveTable::EnsureLoaded()
 		return;
 	}
 
-	bool bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemory( kInfo->pRealData, kInfo->size ) );
+	//{{ Iruha : 2026-09-09 // KLuabinder lost its encrypt-aware DoMemory/
+	//            DoMemoryNotEncript in the March upgrade; g_pKTDXApp->LoadAndDoMemory
+	//            is the shipped replacement - see X2OfflineAttribTable.cpp.
+	bool bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_RESOLVE_TABLE );
 	bool bAdded = ( m_iResolveDataRows > 0 || m_iBrokenPieceRows > 0 );
 
 	if( false == bRan || false == bAdded )
 	{
-		bRan = ( E_FAIL != g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( kInfo->pRealData, kInfo->size ) );
+		bRan = g_pKTDXApp->LoadAndDoMemory( g_pKTDXApp->GetLuaBinder(), SCRIPT_RESOLVE_TABLE, false );
 		bAdded = ( m_iResolveDataRows > 0 || m_iBrokenPieceRows > 0 );
+	//}}
 
 		if( true == bRan && true == bAdded )
 		{

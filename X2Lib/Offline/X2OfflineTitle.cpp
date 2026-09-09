@@ -252,7 +252,7 @@ int CX2OfflineTitle::CheckEquip( int iTitleID, int iEquippedNow ) const
 
 	// DI_NONE means "any dungeon" - the mission scripts leave it out for the
 	// conditions that are not about a particular place.
-	if( CX2Dungeon::DI_NONE == pSub->m_ClearCondition.m_eDungeonID )
+	if( SEnum::DI_NONE == pSub->m_ClearCondition.m_eDungeonID )
 		return true;
 
 	if( (int)pSub->m_ClearCondition.m_eDungeonID != iDungeonID )
