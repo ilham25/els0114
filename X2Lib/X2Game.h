@@ -626,6 +626,74 @@ class CX2Game : public CKTDXStage
 		void						PushCreateNPCReq_Lua( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, float fDelayTime, bool bNoDrop, int iKeyCode );
 		void						FlushCreateNPCReq();
 
+#ifdef SERV_IRUHADEV_OFFLINE
+		/// AI_PARTY_PLAN.md phase 1. Spawn the AI party members the offline
+		/// server put in this dungeon room's bot slots, on the player's team
+		/// with ally AI. Called from CX2DungeonGame::SubStageStart(), beside
+		/// the studio's own CreateAllyEventMonster() - NOT from
+		/// Handler_EGS_PLAY_START_NOT, which a dungeon never reaches. A
+		/// dungeon room with no bot slots spawns nothing, which is what keeps
+		/// the solo button solo. Idempotent: it re-spawns only the bots that
+		/// are not in the world.
+		void						CreateOfflinePartyBots();
+
+		/// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back after
+		/// a delay. Called every frame from CX2DungeonGame::OnFrameMove while
+		/// the dungeon is in GS_PLAY. Needed because nothing else in an
+		/// offline dungeon ever revives a bot - see the comment on the
+		/// definition for why RebirthUserUnit's own bot branch is unreachable
+		/// on this path.
+		void						TickOfflinePartyBots( float fElapsedTime );
+
+		/// AI_PARTY_PLAN.md phase 4b. Take the AI party down: delete what is
+		/// left of it, remove its HP bars, and stop tending it. Called from
+		/// CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT - the
+		/// packet that fills the reward screen in, so the party leaves at the
+		/// moment the run is being paid out. One-way for the life of this
+		/// CX2DungeonGame; a new dungeon builds a new one.
+		void						EndOfflinePartyBots();
+
+		/// True once EndOfflinePartyBots has run. The whole of what it does to
+		/// TickOfflinePartyBots is stop it: with the dungeon over there is
+		/// nothing to respawn into, and the tick would otherwise notice the
+		/// party is dead and ask for it back once a second until the result
+		/// screen takes the state away. It did exactly that in the 2026-09-06
+		/// run - nine spawn requests in four seconds, every one answered and
+		/// none of them ever arriving.
+		bool						m_bOfflinePartyOver;
+
+		/// Seconds each bot has been at 0 HP, keyed by its negative room-slot
+		/// UID. Only TickOfflinePartyBots reads or writes it; an entry is
+		/// erased the moment the bot is alive again, so the map is empty for
+		/// a party that is not currently down and absent entirely for a solo
+		/// run.
+		std::map< int, float >		m_mapOfflineBotDeadTime;
+
+		/// Seconds left on a spawn request that has been sent but whose NPC
+		/// has not turned up yet, keyed the same way. A spawn is not
+		/// synchronous - CreateNPCReq sends a packet and the unit is built
+		/// several frames later off the offline server's queued
+		/// EGS_NPC_UNIT_CREATE_NOT - so "GetNPCUnitByUID returned NULL" does
+		/// not mean "ask again". Without this, the per-frame tick asked four
+		/// times over and put six bots in the room.
+		std::map< int, float >		m_mapOfflineBotSpawnGrace;
+
+		/// Seconds until the next AI party member may be asked for. The party
+		/// spawns one at a time: building a CX2GUNPC loads the hero's meshes
+		/// and lua state machine, and three of those on one frame is a visible
+		/// hitch at every stage change. Counted down in TickOfflinePartyBots,
+		/// armed in CreateOfflinePartyBots.
+		float						m_fOfflineBotSpawnCooldown;
+
+		/// Where AI party member iBotIndex_ belongs on the stage the client is
+		/// standing in: the line map's own party start slot 1..n when it has
+		/// them, a fan-out around the player when it does not. False when there
+		/// is no player unit to place anything beside. Shared by the spawn and
+		/// by the stage-change reposition so the two cannot drift apart.
+		bool						GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ );
+
+#endif SERV_IRUHADEV_OFFLINE
+
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS
 		void						CreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );
 		void						PushCreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );

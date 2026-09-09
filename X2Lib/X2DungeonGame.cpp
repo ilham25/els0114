@@ -174,6 +174,17 @@ HRESULT CX2DungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 #endif DUNGEON_TIME_OUT_FRAMEMOVE
 		CountTimeSubStageFrameMove( fTime, fElapsedTime );
 
+#ifdef SERV_IRUHADEV_OFFLINE
+		// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back.
+		//
+		// Per frame rather than per sub-stage because a bot dies mid-fight,
+		// and SubStageStart - where CreateOfflinePartyBots hangs - may not
+		// come round again for minutes. The method's own guards make this
+		// free on the solo path: it returns immediately when the room has no
+		// bot slots, which is every room the normal start button opens.
+		TickOfflinePartyBots( fElapsedTime );
+#endif SERV_IRUHADEV_OFFLINE
+
 		if( m_pDungeon != NULL )
 			m_pDungeon->OnFrameMove( fTime, fElapsedTime );
 
@@ -1252,6 +1263,29 @@ void CX2DungeonGame::SubStageStart()
 	}
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#ifdef SERV_IRUHADEV_OFFLINE
+	// AI_PARTY_PLAN.md phase 1. The AI party members auto-party asked for.
+	//
+	// Here, and not in CX2Game::Handler_EGS_PLAY_START_NOT where the plan
+	// put it, for two reasons found by play-testing that handler doing
+	// nothing at all. First, a dungeon never calls it: EGS_PLAY_START_NOT
+	// goes to CX2StateDungeonGame::PlayStartNot(), which calls GameStart()
+	// directly (X2StateDungeonGame.cpp:1692) - that handler is the PvP and
+	// room paths only. Second, even reachable it would be too early: the
+	// first sub-stage has not loaded at play start, so there is no placed
+	// player to spawn beside.
+	//
+	// Deliberately alongside CreateAllyEventMonster() above, which is the
+	// studio's own "fill this party out to four with ally NPCs" feature and
+	// therefore the best evidence in the tree that this is the right moment.
+	// CreateOfflinePartyBots() is idempotent, so running once per sub-stage
+	// spawns on the first and recovers a lost bot on the rest.
+	if( true == IsHost() )
+	{
+		CreateOfflinePartyBots();
+	}
+#endif SERV_IRUHADEV_OFFLINE
+
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
@@ -2067,6 +2101,18 @@ bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_START_NOT( KEGS_DUNGEON_SUB_S
 bool CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT( KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT& kPacket )
 {
 	g_pData->ResetDungeonResultInfo( kPacket );
+
+#ifdef SERV_IRUHADEV_OFFLINE
+	//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4b.
+	//
+	// This is the packet that fills the reward screen in - the line above is
+	// literally it - so it is the moment the AI party leaves. See
+	// CX2Game::EndOfflinePartyBots for why this packet and not one of the
+	// other three the end of a dungeon offers. Costs a solo run nothing: the
+	// first thing it looks at is whether the room has bot slots at all.
+	EndOfflinePartyBots();
+	//}}
+#endif SERV_IRUHADEV_OFFLINE
 
 // 	if( g_pData != NULL && 
 // 		g_pData->GetUIManager() != NULL && 
