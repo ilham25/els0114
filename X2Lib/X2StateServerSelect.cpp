@@ -2186,7 +2186,11 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 #ifdef SERV_UNIT_WAIT_DELETE
 						if( NULL != m_pSelectUnit && m_pSelectUnit->GetUnitData().m_bDeleted == true )
 						{
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+							m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_30401 ), SUSUCM_RESTORE_UNIT, this, SUSUCM_FINAL_DELETE_UNIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+#else
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 							break;
 						}
 #endif SERV_UNIT_WAIT_DELETE
@@ -3175,6 +3179,14 @@ bool CX2StateServerSelect::ClearUnitButton()
 			pFullUnitButton->SetShowEnable( false, false );
 		}
 
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+		{
+			CKTDGUIButton* pDeleteUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 5 ) );
+			if ( NULL != pDeleteUnitButton )
+				pDeleteUnitButton->SetShowEnable( false, false );
+		}
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+
 		CKTDGUIStatic* pStaticEmblem = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitEmblem" ) );
 		if ( NULL != pStaticEmblem )
 			pStaticEmblem->SetShow ( false );
@@ -3283,7 +3295,11 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 			}
 			else
 			{
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+				m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_30401 ), SUSUCM_RESTORE_UNIT, this, SUSUCM_FINAL_DELETE_UNIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+#else
 				m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 (0, -130), L"UI_PopUp_Negative_01.ogg" );
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 			}
 #else
 #ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
@@ -11071,7 +11087,16 @@ void CX2StateServerSelect::CreateUnitButtonNew ()
 
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitSlot );
 		pUnitSlot->SetShowEnable(true, true);
-		m_vecUnitSlot.push_back(pUnitSlot);		
+
+#ifdef SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON
+		{
+			CKTDGUIButton* pDeleteUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 5 ) );
+			if ( NULL != pDeleteUnitButton )
+				pDeleteUnitButton->SetShowEnable( false, false );
+		}
+#endif SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON
+
+		m_vecUnitSlot.push_back(pUnitSlot);
 	}
 }
 void CX2StateServerSelect::ChangeUnitButtonInfo ()
@@ -11126,6 +11151,10 @@ void CX2StateServerSelect::ChangeUnitButtonInfo ()
 			CKTDGUIButton* pEmptyUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 3 ) );
 			CKTDGUIButton* pFullUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 4 ) );
 
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+			CKTDGUIButton* pDeleteUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 5 ) );
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+
 			if ( NULL != pSelectUnitButton && NULL != pCreateUnitButton && NULL != pNoCreateUnitButton && NULL != pEmptyUnitButton && NULL != pFullUnitButton )
 			{							
 				pSelectUnitButton->SetDownStateAtNormal( false );
@@ -11159,6 +11188,14 @@ void CX2StateServerSelect::ChangeUnitButtonInfo ()
 				else
 				{
 					pSelectUnitButton->SetShowEnable( true, true );
+
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+					if ( NULL != pDeleteUnitButton && true == pUnit->GetUnitData().m_bDeleted )
+					{
+						pSelectUnitButton->SetShowEnable( false, false );
+						pDeleteUnitButton->SetShowEnable( true, true );
+					}
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 				}
 			}
 			
@@ -11220,6 +11257,13 @@ void CX2StateServerSelect::ChangeUnitButtonInfo ()
 			{
 				pSelectUnitButton->SetName( buttonName.str().c_str() );
 			}
+
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+			if( NULL != pDeleteUnitButton )
+			{
+				pDeleteUnitButton->SetName( buttonName.str().c_str() );
+			}
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 		
 			CKTDGUIStatic* pStaticLV = (CKTDGUIStatic*)pUnitSlot->GetControl( L"lv" );
 			if ( NULL != pStaticLV)

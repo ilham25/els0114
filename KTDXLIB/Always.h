@@ -3655,3 +3655,58 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS
 #endif SERV_IRUHADEV_OFFLINE
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-11
+// Description: Character select was unusable - every slot's click was
+//              swallowed by "ButtonDeleteUnit", the 6th button
+//              DLG_UI_Character_Selection_Slot_New.lua creates per slot.
+//              CX2StateServerSelect::CreateUnitButtonNew() never fetches or
+//              hides GetControl(5) (that button), so it keeps its
+//              CKTDGUIControl default of Show=true/Enable=true forever.
+//              KTDGUIDialog::MsgProc hit-tests controls last-added-first, so
+//              this always-on, never-renamed button intercepts every
+//              SUSUCM_UNIT_BUTTON_UP before the real SelectUnit button
+//              (index 0) is even checked. Its name is never rewritten to
+//              "SLOT_BUTTON_<uid>" (only index 0 gets that in
+//              ChangeUnitButtonInfo), so UICustomEventProc's
+//              tempButtonName.substr(12) on the literal "ButtonDeleteUnit"
+//              produces garbage, GetUnitByUID() returns NULL, and the click
+//              is silently dropped.
+//
+//              This button has zero other C++ references anywhere in the
+//              tree - it looks like an intended "pending delete" visual
+//              (SERV_UNIT_WAIT_DELETE already grays the unit face) that was
+//              never wired up. Hiding it at creation is a pure bug fix, not
+//              a feature removal; restoring the intended visual would be a
+//              separate change (rename index 5, not index 0).
+#define SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-11
+// Description: A unit pending deletion (m_bDeleted) had no in-slot overlay
+//              and no way to restore or permanently delete it - clicking its
+//              slot just re-showed a dead-end OK box (STR_ID_30401). The
+//              restore/final-delete network flow was already fully wired
+//              (Handler_EGS_RESTORE_UNIT_REQ, Handler_EGS_FINAL_DELETE_UNIT_REQ,
+//              their own confirm dialogs via SUSUCM_RESTORE_UNIT /
+//              SUSUCM_FINAL_DELETE_UNIT) but had no UI entry point anywhere.
+//
+//              This repurposes the slot's previously-dead ButtonDeleteUnit
+//              (index 5, see SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON just
+//              above) as the visual overlay for a pending-deleted unit: shown
+//              in place of the normal select button only for slots whose unit
+//              has m_bDeleted set, using its already-gray BT_CHALIST_GRAY
+//              texture. Clicking it re-selects the unit exactly like the
+//              normal select button (same SLOT_BUTTON_<uid> name, same
+//              SUSUCM_UNIT_BUTTON_UP message). The dead-end OK box (both at
+//              the slot double-click and at the channel-select-step proceed
+//              check) is replaced with an Ok/Cancel chooser wired directly to
+//              the existing SUSUCM_RESTORE_UNIT (Ok) / SUSUCM_FINAL_DELETE_UNIT
+//              (Cancel) messages, so both existing confirm-dialog chains get a
+//              real trigger for the first time.
+#define SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+//////////////////////////////////////////////////////////////////////////
