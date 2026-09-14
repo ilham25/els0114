@@ -191,16 +191,30 @@ Notes that matter in practice:
 
 **The VS2010 C++ compiler is on `D:`, not `C:`** — `D:\Program Files\VS\Microsoft Visual Studio 10.0\` (registry `HKLM\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VC7` → `10.0`). The `C:\Program Files (x86)\Microsoft Visual Studio 10.0\` tree holds only shell pieces and has no `VC` directory. **VS2003 is not installed at all** (no `SxS\VS7` entry for `7.1`), so the servers cannot be built in this environment — plan around that rather than discovering it mid-task.
 
+**`msbuild` is not on `PATH`** in a Git Bash shell here — use the full path,
+`/c/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe`
+(`C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe`). Pass
+`-m -p:MultiProcessorCompilation=true` on every invocation — the machine has
+16 logical cores and none of the `.vcxproj`s set `MultiProcessorCompilation`
+themselves, so without the property override `cl.exe` compiles one
+translation unit at a time. `-m` alone does nothing extra here since each
+command below builds a single project, not a solution graph — the property
+override is what actually turns on `/MP`. Verified: a full `X2Lib` rebuild
+(forced via `touch X2Lib/stdafx.cpp` to invalidate the PCH) completed in
+~4 minutes at 16-way with zero errors, same output size as without the flag.
+
 ```sh
+MSBUILD="/c/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe"
 TRUNK="F:/elsword stuff/.../source/EU_CN_US/Trunk"   # must end in a slash when passed
+MP="-m -p:MultiProcessorCompilation=true"
 
 # Dependencies first, in this order. luajitLib and luaLib are Release; X2ServerProtocol is X2TOOL.
-msbuild luajitLib/luajitLib.vcxproj                    -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild luaLib/luaLib_2010.vcxproj                     -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+"$MSBUILD" luajitLib/luajitLib.vcxproj                    -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" luaLib/luaLib_2010.vcxproj                     -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
 ```
 
 `SolutionDir` **must** be passed, with a trailing slash: every `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as `$(SolutionDir)Libs...`, so without it the build dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'` or `'d3dx9.h'`. Use **forward slashes**, and put the trailing slash inside the value (`SolutionDir=F:/.../Trunk/`). A backslash path is an active trap: a trailing `\` before a closing quote escapes the quote, msbuild gets a mangled `SolutionDir`, and the build fails with `C1083: Cannot open include file: 'ImportKncSerializer.h'` — which reads like a missing KNCSDK include path in the project and is not.
@@ -339,17 +353,19 @@ Two invariants worth knowing before changing anything in here:
 **This branch (`mods/offline-mod-2`) exists to build and run the offline client.** A change is not finished when it compiles; it is finished when the exe in the game directory has it and the logs show it working. The whole loop:
 
 ```sh
+MSBUILD="/c/Windows/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe"         # not on PATH here
 TRUNK="F:/elsword stuff/.../source/EU_CN_US/Trunk"                   # this repo
 DATA="F:/elsword stuff/elsword_2014/els_2014/237311/24965799/data"   # the game directory
+MP="-m -p:MultiProcessorCompilation=true"                            # 16 cores, see *Toolchains*
 
 # 1. build - dependencies, then X2Lib, then the exe. See *Toolchains* for the
 #    full ordered list and why each config is what it is. NEVER build via
 #    X2Project_2010.sln: its US_INTERNAL build sweeps in ~15 dead tool/server
 #    projects and never runs X2_2010.vcxproj, so it produces no exe.
-msbuild X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
-msbuild X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/"
+"$MSBUILD" X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
 
 # 2. confirm the artifact. The post-build event is disabled under US_INTERNAL,
 #    so the exit code is meaningful now - but still check the file and its date.
