@@ -965,6 +965,27 @@ bool CX2OfflineDB::Migrate()
 		CX2OfflineLog::Server( L"DB       schema upgraded to v11 (persisted summoned pet)" );
 	}
 
+	if( iFrom < 12 )
+	{
+		// SERV_IRUHADEV_MAX_UNIT_SLOTS raises DEFAULT_UNIT_SLOTS from 3 to 100.
+		// GetOrCreateAccount only applies that constant to a brand-new account
+		// row, so a save from before this flag still has 3 stored - this rung
+		// carries it forward. Only a row still sitting on LEGACY_UNIT_SLOTS is
+		// rewritten, so a slot count somebody has since hand-edited survives.
+		char szSlots[192];
+		_snprintf( szSlots, 192,
+			"UPDATE account SET unit_slots = %d WHERE unit_slots = %d;",
+			(int)DEFAULT_UNIT_SLOTS, (int)LEGACY_UNIT_SLOTS );
+		szSlots[191] = '\0';
+
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( szSlots ) )			{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v12 (unit slots %d -> %d)",
+			(int)LEGACY_UNIT_SLOTS, (int)DEFAULT_UNIT_SLOTS );
+	}
+
 	char szSetVersion[64];
 	_snprintf( szSetVersion, 64, "PRAGMA user_version = %d;", (int)SCHEMA_VERSION );
 	szSetVersion[63] = '\0';

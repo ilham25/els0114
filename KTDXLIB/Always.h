@@ -3714,6 +3714,24 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //////////////////////////////////////////////////////////////////////////
 // Author: Iruha
 // Date: 2026-09-15
+// Description: Raise the offline save's character slot count from 3
+//              (dbo.GUser.USSize, X2OfflineDB.h's DEFAULT_UNIT_SLOTS) to
+//              100 per user request. Single-player has no reason to cap
+//              alt count the way the live service did to sell slot
+//              expansions. See X2OfflineDB.h/.cpp for the actual value and
+//              the v12 migration that bumps an already-created account's
+//              stored unit_slots row forward - the constant alone only
+//              reaches a brand-new save. Meaningless without
+//              SERV_IRUHADEV_OFFLINE, so defined under it rather than
+//              beside it.
+#ifdef SERV_IRUHADEV_OFFLINE
+#define SERV_IRUHADEV_MAX_UNIT_SLOTS
+#endif SERV_IRUHADEV_OFFLINE
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-15
 // Description: Manual channel selection could stall forever on the
 //              "connecting to server" no-button modal. A double-click on
 //              the channel row (CX2StateServerSelect::ChannelButtonUp) or on

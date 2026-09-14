@@ -396,7 +396,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 11,
+		SCHEMA_VERSION			= 12,
 
 		/// How long after a soft delete the final delete becomes possible.
 		/// Zero: a solo save has nobody to protect a character from, so the
@@ -411,8 +411,21 @@ public:
 		/// DelAbleDate for why it cannot simply be "now".
 		DELETE_CLOCK_SLACK_SECONDS = 60,
 
+#ifdef SERV_IRUHADEV_MAX_UNIT_SLOTS
+		/// Character slots on a fresh account, raised from the original
+		/// dbo.GUser.USSize value (LEGACY_UNIT_SLOTS) per user request -
+		/// single-player has no reason to cap alt count. The v12 migration
+		/// bumps a save that already has an account row.
+		DEFAULT_UNIT_SLOTS		= 100,
+#else //SERV_IRUHADEV_MAX_UNIT_SLOTS
 		/// Character slots on a fresh account. dbo.GUser.USSize.
 		DEFAULT_UNIT_SLOTS		= 3,
+#endif //SERV_IRUHADEV_MAX_UNIT_SLOTS
+
+		/// What DEFAULT_UNIT_SLOTS used to be before SERV_IRUHADEV_MAX_UNIT_SLOTS.
+		/// The v12 migration only rewrites an account row still sitting on this
+		/// value, so a slot count somebody has since hand-edited survives.
+		LEGACY_UNIT_SLOTS		= 3,
 
 		/// dbo.gup_create_unit inserts LastPosition = 20000 on a new character.
 		DEFAULT_LAST_POSITION	= 20000,
