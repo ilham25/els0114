@@ -14,7 +14,7 @@ the build commands and is the other document a fresh session should read.
 | 3 | Emulator standup + client revivals | not started |
 | 3B | The entry-point character-select handshake | not started |
 | 4 | Offline gameplay call sites | not started |
-| 5 | AI party | not started |
+| 5 | AI party | built + deployed 2026-09-14, play-test pending |
 | 6 | The QoL flags | not started |
 | 7 | Content, save migration, full verification | not started |
 | 8 | Documentation closeout | not started |
@@ -273,6 +273,62 @@ it silently does nothing.
 Done when: auto-party fills empty dungeon slots with AI heroes and the party
 HUD renders them correctly.
 ```
+
+**Phase 5 done (2026-09-14).** All three files restored by symbol lookup
+against `c4495a3`, byte-anchored (not merged, since both `X2Game.cpp`/`.h`
+and `X2DungeonGame.cpp` had already taken their Phase 4 `OFFLINE` pass and a
+second full merge risked re-litigating that): the constructor's
+`m_bOfflineKeepPartyBots` member, `DeleteAllNPCUnit`'s stage-change
+exemption, and `IsOfflinePartyBotUID`/`RepositionOfflinePartyBots` in
+`X2Game.cpp`/`.h`; the `DeleteAllNPCUnit` call-site guard and the
+`RepositionOfflinePartyBots()` call in `X2DungeonGame.cpp`'s
+`StageLoading`. `X2Lib/X2Data.cpp`'s `GetPvpNpcImageName` remap (the
+`NUI_CSM_PVP_HERO_*` -> `NUI_PVP_HERO_*` cast this phase's kickoff also
+named) turned out already restored - Phase 3's merge pulled it in despite
+that phase's instructions saying to leave it alone, confirmed via
+`git show 9814abe -- X2Lib/X2Data.cpp` - so no action was needed there.
+
+Three stale line-number citations inside our own restored comments were
+corrected to match the March line numbers rather than carried over from the
+pre-upgrade file: `X2DungeonGame.cpp:685` -> `:665` and
+`X2Game.cpp:1677` -> `:1684` (in the `DeleteAllNPCUnit` comment), and
+`X2DungeonGame.cpp:814` -> `:792` and `X2Game.cpp:6519` -> `:6314` (in the
+`RepositionOfflinePartyBots` comment). `X2NPCAI.h:145`'s citation needed no
+change - coincidentally still correct.
+
+Verification gate ran clean on all three files: `file` reports unchanged
+encoding (`ISO-8859`, `X2Game.cpp` CRLF-only, the other two mixed CRLF/LF
+same as before), `git diff --stat` shows insertions only (`X2Game.h` +16,
+`X2Game.cpp` +152, `X2DungeonGame.cpp` +31), and the Trap-2 flag-token diff
+printed nothing for all three. `X2Lib` and `X2` both rebuilt clean (zero
+compiler/linker errors); a temporary `#pragma message` inside the
+`SERV_IRUHADEV_AIPARTY_PERSIST` guard confirmed the flag actually compiled
+in before being removed again. `x2.exe` (22,376,448 bytes) was deployed to
+`237311/24965799/data/X2_offline.exe`, confirmed by size and mtime read
+programmatically.
+
+File inventory double-checked with `git grep -l SERV_IRUHADEV_AIPARTY_PERSIST
+c4495a3` (no pathspec): six hits, and the only two that are not
+`AI_PARTY_PLAN.md`/`MODS.md`/`Always.h` are the three source files this
+phase touched - nothing in the restore set was missed.
+
+Also checked the tail of March's `CX2Game::DeleteAllNPCUnit`, past the
+`SUMMON_MONSTER_CARD_SYSTEM` block this phase's `continue` sits beside: the
+`m_NPCUnitList[i] = NULL;` null-out at the end of the loop body is reached
+only by units that fall through every `continue` above it, monster-card
+summons included. A spared AI party bot never reaches that line, so its
+slot stays live and `GetNPCUnitByUID` keeps finding it - no
+`m_NPCUnitList.clear()` or changed erase pattern anywhere in the function
+that would invalidate the sparing.
+
+**Not yet play-tested** - launching the exe needs the user's own go-ahead
+(the exe is deployed and ready at the path above). The restored code logs
+its own verdict, so a multi-stage dungeon run's answer is one grep:
+`grep AIPARTY offline_server.log` - a `"kept across the stage change"` line
+per bot per stage change means persistence is working; if only
+`"could not be placed... deleting, the spawn will rebuild it"` or nothing
+shows up, the bots are still being fully respawned by Phase 4's path instead
+of persisted.
 
 **Phase 6 - The QoL flags**
 

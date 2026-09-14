@@ -692,6 +692,22 @@ class CX2Game : public CKTDXStage
 		/// by the stage-change reposition so the two cannot drift apart.
 		bool						GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ );
 
+#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
+		/// True only while CX2DungeonGame::StageLoading is tearing the old
+		/// stage down, and the one thing that makes DeleteAllNPCUnit spare a
+		/// living AI party member. Deliberately not a blanket exemption: every
+		/// other caller of DeleteAllNPCUnit still means all of them.
+		bool						m_bOfflineKeepPartyBots;
+
+		/// True if iUID_ is one of this dungeon room's AI party slot UIDs.
+		bool						IsOfflinePartyBotUID( int iUID_ );
+
+		/// Put the AI party members that survived a stage change onto the new
+		/// stage's line map, in the wait state. Called from
+		/// CX2DungeonGame::StageLoading beside the m_UserUnitList reposition
+		/// loop it deliberately mirrors.
+		void						RepositionOfflinePartyBots();
+#endif SERV_IRUHADEV_AIPARTY_PERSIST
 #endif SERV_IRUHADEV_OFFLINE
 
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS
