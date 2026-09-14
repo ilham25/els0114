@@ -1494,6 +1494,12 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 		case SUSUCM_SELECT_UNIT:
 			{
 
+#ifdef SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
+				// Same re-entrancy hazard as ChannelButtonUp - see Always.h.
+				if( true == m_bWaiting_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK )
+					return true;
+#endif SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
+
 #ifdef SERV_SECOND_SECURITY
 				if(m_bEnableUnitSelectBySecondSecurity == false)
 				{
@@ -11756,6 +11762,14 @@ bool CX2StateServerSelect::Handler_EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ ( UidTyp
 
 bool CX2StateServerSelect::ChannelButtonUp( CKTDGUIButton * pButton )
 {
+
+#ifdef SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
+	// A double-click on the channel row otherwise sends
+	// EGS_DISCONNECT_FOR_SERVER_SELECT_REQ twice; see Always.h for why that
+	// strands the client on the "connecting to server" modal.
+	if( true == m_bWaiting_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK )
+		return true;
+#endif SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
 
 #ifdef SERV_SECOND_SECURITY
 	if(m_bEnableUnitSelectBySecondSecurity == false)

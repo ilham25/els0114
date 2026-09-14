@@ -3710,3 +3710,21 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              real trigger for the first time.
 #define SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-15
+// Description: Manual channel selection could stall forever on the
+//              "connecting to server" no-button modal. A double-click on
+//              the channel row (CX2StateServerSelect::ChannelButtonUp) or on
+//              the already-selected character (SUSUCM_SELECT_UNIT) sends
+//              EGS_DISCONNECT_FOR_SERVER_SELECT_REQ twice; both ACKs re-run
+//              the reconnect logic in Handler_EGS_DISCONNECT_FOR_SERVER_
+//              SELECT_ACK, and the second call tears down the game-server
+//              session that the first call just reconnected, right after
+//              EGS_CONNECT_ACK, with nothing left to retry. SSSUCM_SERVER_
+//              CONNECT0 already guards this with m_bWaiting_EGS_DISCONNECT_
+//              FOR_SERVER_SELECT_ACK; ChannelButtonUp and SUSUCM_SELECT_UNIT
+//              never got the same guard.
+#define SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
+//////////////////////////////////////////////////////////////////////////
