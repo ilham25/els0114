@@ -10,10 +10,10 @@ the build commands and is the other document a fresh session should read.
 |---|---|---|
 | 0 | Baseline, build wiring, docs | **DONE** 2026-09-09 |
 | 1 | Flag definitions and tuning constants | **DONE** 2026-09-09 |
-| 2 | Offline build wiring + the socket seam | not started |
-| 3 | Emulator standup + client revivals | not started |
-| 3B | The entry-point character-select handshake | not started |
-| 4 | Offline gameplay call sites | not started |
+| 2 | Offline build wiring + the socket seam | **DONE** (`0b84beb`) |
+| 3 | Emulator standup + client revivals | **DONE** (`9814abe`) |
+| 3B | The entry-point character-select handshake | **DONE** (`2cf764a`); a tutorial auto-connect bug found and fixed 2026-09-15, built + deployed, play-test pending - see the "Auto-connect after character creation" note below |
+| 4 | Offline gameplay call sites | **DONE** (`76fcf9a`) |
 | 5 | AI party | built + deployed 2026-09-14, play-test pending |
 | 6 | The QoL flags | not started |
 | 7 | Content, save migration, full verification | not started |
@@ -1000,6 +1000,34 @@ Character select shows the real character list read from `els_db.sql`,
 entering the village shows the correct skill tree state (not wiped to empty),
 and `offline_packets.log` shows no `UNHANDLED` entries anywhere between login
 and village entry.
+
+### Auto-connect after character creation (found and fixed 2026-09-15)
+
+A newly created character does not land on channel select at all - retail
+auto-enters the tutorial. `CX2StateCreateUnit::Handler_EGS_CREATE_UNIT_ACK`
+(`X2StateCreateUnit.cpp:2646`) sets `SetIsPlayingTutorial(true)` and raises a
+**no-button** modal; `CX2StateServerSelect`'s constructor
+(`:506-519`) sees that flag, auto-selects the new unit, and calls
+`EnterTutorial()` (`:1303`), which sets
+`m_iReservedEntryPointServerChannelIndex = -2` ("pick a channel by level
+match") and sends `EGS_DISCONNECT_FOR_SERVER_SELECT_REQ`.
+
+That `-2` branch (`X2StateServerSelect.cpp:8868-8899`, live only because
+`FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW` is ON) picks its channel *exclusively*
+through `FindAndConnectMatchingLevelGameServer`, which reads the per-channel
+bonus map (`X2StateServerSelect.cpp:12093`) and returns `-1` outright if that
+map is empty - and our `Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ`
+(`Handlers_Login.cpp:351`) sent one channel but no bonus entry. Result:
+`Handler_EGS_CONNECT_REQ` is never called, no error is raised anywhere, and
+the no-button modal never closes. This is a client-only bug in our emulator,
+not a REFORM_ENTRY_POINT gap - fixed by adding one `KChannelBonusInfo` entry
+(any level range, zero bonus) alongside the channel in that same handler.
+
+All `#ifdef` verdicts above were confirmed with the `cl /EP` probe (see
+"`US_INTERNAL` resolved by preprocessor, not by reading" earlier in this
+file); do the same before trusting a flag read by eye in this area again -
+`FIX_REFORM_ENTRY_POINT_7TH`, `_8TH` and `_10TH` are all **off** here, which
+changes which branches of `X2StateServerSelect.cpp` are actually live.
 
 ## Corrections ledger
 

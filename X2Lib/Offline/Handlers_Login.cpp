@@ -363,9 +363,34 @@ bool CX2OfflineServer::Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ( KOfflineSes
 	kChannel.m_iCurPartyCount		= 0;
 	kChannel.m_iPlayGamePartyCount	= 0;
 
+	//{{ Iruha : 2026-09-15 // The bonus table is NOT optional, despite there being
+	// no bonus to give. The tutorial auto-entry that runs right after character
+	// creation (CX2StateServerSelect::EnterTutorial sets
+	// m_iReservedEntryPointServerChannelIndex = -2) picks its channel ONLY through
+	// this table: FindAndConnectMatchingLevelGameServer
+	// (X2StateServerSelect.cpp:12091) returns -1 outright when the bonus map is
+	// empty, and its caller at :8885 then matches no channel and never calls
+	// Handler_EGS_CONNECT_REQ - so the client sits on a no-button modal forever
+	// with nothing in either log. The manual channel-click path uses the indexed
+	// branch at :8902 and does not consult this map, which is why only
+	// first-character creation hung.
+	//
+	// One entry spanning every level keeps the sole offline channel eligible for
+	// any character. The bonus percentages stay 0 and m_bEnable stays false: this
+	// exists to make the channel selectable, not to grant a rate bonus - the
+	// mod's EXP/ED boost lives in X2Define.h and must not be doubled up here.
+	KChannelBonusInfo kBonus;
+	kBonus.m_bEnable	= false;
+	kBonus.m_iBeginLv	= 1;
+	kBonus.m_iEndLv		= 999;		///< above any reachable cap, so every unit matches
+	kBonus.m_iPerExp	= 0;
+	kBonus.m_iPerED		= 0;
+	//}}
+
 	KEGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK kAck;
 	kAck.m_mapSolesChannelList.insert( std::make_pair( OFFLINE_CHANNEL_ID, kChannel ) );
-	// no Gaia shard, no channel bonuses offline
+	kAck.m_mapSolesChannelBonusList.insert( std::make_pair( OFFLINE_CHANNEL_ID, kBonus ) );
+	// no Gaia shard offline
 
 	return Reply( kSes, EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK, kAck );
 }
