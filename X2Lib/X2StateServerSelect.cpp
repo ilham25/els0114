@@ -1396,6 +1396,21 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 					if ( NULL != pCharButton )
 						pCharButton->SetDownStateAtNormal( false );
+
+//{{ Iruha : 2026-09-16 // This loop only ever reset control index 0 (the
+// normal select button). Under SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU a
+// pending-deleted slot's clickable button is index 5 instead (see
+// ChangeUnitButtonInfo), so its down/highlighted state was never cleared
+// when a different slot was clicked - every pending slot ever clicked
+// stayed visually highlighted at once, unlike a live slot's single
+// highlight. Reset it the same way.
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+					CKTDGUIButton* pDeleteButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 5 ) );
+
+					if ( NULL != pDeleteButton )
+						pDeleteButton->SetDownStateAtNormal( false );
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+//}}
 				}
 
 				pButton->SetDownStateAtNormal( true );
@@ -2193,7 +2208,7 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 						if( NULL != m_pSelectUnit && m_pSelectUnit->GetUnitData().m_bDeleted == true )
 						{
 #ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
-							m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_30401 ), SUSUCM_RESTORE_UNIT, this, SUSUCM_FINAL_DELETE_UNIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+							m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_16106 ), SUSUCM_RESTORE_UNIT_CHECK, this, -1, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
 #else
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
 #endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
@@ -3302,7 +3317,7 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 			else
 			{
 #ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
-				m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_30401 ), SUSUCM_RESTORE_UNIT, this, SUSUCM_FINAL_DELETE_UNIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+				m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_16106 ), SUSUCM_RESTORE_UNIT_CHECK, this, -1, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
 #else
 				m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 (0, -130), L"UI_PopUp_Negative_01.ogg" );
 #endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
@@ -3404,6 +3419,27 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 #ifdef ADD_PLAY_SOUND //김창한
 	PlaySoundSelect( pUnit->GetType(), SPT_UNIT_SELECT );
 #endif //ADD_PLAY_SOUND
+
+//{{ Iruha : 2026-09-16 // Vanilla's real restore/final-delete buttons (see
+// CreateServerSelectUnitViewerUI just above, which already sets their
+// enabled state for this exact pUnit) fire on their own click, independent
+// of whether the unit was already selected. Since those buttons don't
+// exist in this build's dialog (SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU),
+// the nearest equivalent is to raise the same restore confirm the moment a
+// pending unit becomes selected, rather than requiring a second click on
+// the same slot - the only other trigger, at the "if( m_pSelectUnit ==
+// pUnit )" branch above, which a first click cannot reach and so looked
+// exactly like nothing happened.
+#ifdef SERV_UNIT_WAIT_DELETE
+#ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+	if( true == pUnit->AccessUnitData().m_bDeleted )
+	{
+		SAFE_DELETE_DIALOG( m_pDLGDeleteUnitCheck );
+		m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_16106 ), SUSUCM_RESTORE_UNIT_CHECK, this, -1, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+	}
+#endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
+#endif SERV_UNIT_WAIT_DELETE
+//}}
 
 #else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	CX2UnitViewerUI* pUnitViewer = GetUnitViewer( pUnit );
@@ -11267,7 +11303,22 @@ void CX2StateServerSelect::ChangeUnitButtonInfo ()
 #ifdef SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 			if( NULL != pDeleteUnitButton )
 			{
-				pDeleteUnitButton->SetName( buttonName.str().c_str() );
+//{{ Iruha : 2026-09-16 // SetName (not SetNameByForce) registers the name in
+// the dialog's m_ControlsMap for GetControl(L"name") lookups, and
+// CKTDGUIDialog::ReNameControl silently disambiguates a collision by
+// appending a counter starting at 100 - which is exactly what happened
+// here: pSelectUnitButton claims "SLOT_BUTTON_<uid>" first (a few lines
+// above), so this button's identical name collided and got silently
+// renamed to "SLOT_BUTTON_<uid>100". SUSUCM_UNIT_BUTTON_UP's
+// tempButtonName.substr(12) then parsed a UID with a spurious "100"
+// suffix that matches no real unit, so GetUnitByUID() returned NULL and
+// every click on a pending slot silently did nothing - not a delete-flow
+// bug, a name collision between the two buttons this flag shows/hides.
+// Nothing looks this button up by name (only by index, GetControl(5)),
+// so SetNameByForce - which only sets m_Name, skipping the map and its
+// collision check - is the correct fix, not a workaround.
+				pDeleteUnitButton->SetNameByForce( buttonName.str().c_str() );
+//}}
 			}
 #endif SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 		

@@ -1116,27 +1116,36 @@ bool CX2OfflineDB::LoadUnit( UidType nUnitUID, OUT KOfflineUnitRow& kOut )
 	return bFound;
 }
 
-bool CX2OfflineDB::IsNickNameTaken( const std::wstring& wstrNickName )
+//{{ Iruha : 2026-09-16 // Vanilla holds a soft-deleted unit's name until final
+// delete - dbo.GUnitNickName isn't nulled until dbo.gup_delete_unit's second
+// stage. The old del_date = reg_date filter freed the name at reservation
+// time instead, which offline's restore-only flow (no final-delete UI) turns
+// into a real hazard: soft-delete "Bob", create a new "Bob", and the old one
+// can never be restored again (Handlers_Unit.cpp's own collision check would
+// refuse it). Dropping the filter fixes that, but self-collides the very
+// call it's meant to protect - the restore check would see its own row's
+// name and refuse. iExcludeUnitUID lets that one caller ask "held by anyone
+// ELSE"; the two create/check callers pass the default 0, unchanged.
+bool CX2OfflineDB::IsNickNameTaken( const std::wstring& wstrNickName, UidType iExcludeUnitUID )
 {
 	KLocker lock( m_cs );
 
 	if( NULL == m_pDB )
 		return false;
 
-	// Only live characters hold a name. The real DB nulls dbo.GUnitNickName on
-	// delete, which frees the name the same way; keeping the row's nickname
-	// intact is what lets the client still draw the deleted slot.
 	sqlite3_stmt* pStmt = Prepare(
-		"SELECT 1 FROM unit WHERE nickname = ?1 AND del_date = reg_date LIMIT 1;" );
+		"SELECT 1 FROM unit WHERE nickname = ?1 AND ( ?2 = 0 OR unit_uid <> ?2 ) LIMIT 1;" );
 	if( NULL == pStmt )
 		return false;
 
 	BindText( pStmt, 1, wstrNickName );
+	sqlite3_bind_int64( pStmt, 2, (sqlite3_int64)iExcludeUnitUID );
 
 	bool bTaken = ( SQLITE_ROW == sqlite3_step( pStmt ) );
 
 	sqlite3_finalize( pStmt );
 	return bTaken;
+	//}}
 }
 
 int CX2OfflineDB::CountLiveUnits( UidType nUserUID )
@@ -1260,10 +1269,22 @@ bool CX2OfflineDB::FinalDeleteUnit( UidType nUnitUID )
 	// The one place a row really goes away. The child tables carry no foreign
 	// key back to unit (they are written by later phases and indexed by hand),
 	// so clear them explicitly rather than leaning on ON DELETE CASCADE.
+	//{{ Iruha : 2026-09-16 // This list was last extended for the v5/v6-era
+	// schema and missed four unit_uid-keyed tables added since: unit_pet and
+	// unit_riding_pet (schema v7), unit_skill_unsealed and unit_skill_note
+	// (v10). Not corruption - unit_uid is INTEGER PRIMARY KEY AUTOINCREMENT,
+	// so a new character can never inherit a deleted one's uid - but the
+	// orphaned rows were dead weight that never resurfaces. Currently latent:
+	// nothing in the UI reaches FinalDeleteUnit (see
+	// SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU), but the handler is still
+	// dispatched, so fixing the list costs nothing and closes the gap if a
+	// final-delete entry point is ever added.
 	static const char* const szTables[] =
 		{ "inventory_size", "item", "unit_skill", "unit_quest", "unit_dungeon",
 		  "unit_subquest", "unit_quest_complete", "unit_mission", "unit_submission",
-		  "unit_title" };
+		  "unit_title", "unit_pet", "unit_riding_pet", "unit_skill_unsealed",
+		  "unit_skill_note" };
+	//}}
 
 	// Begin()/Commit(), not "BEGIN;": since phase 8 the whole dispatch is
 	// already inside a transaction, and a nested BEGIN is an error.

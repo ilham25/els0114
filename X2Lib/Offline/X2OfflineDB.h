@@ -398,18 +398,27 @@ public:
 		/// phase needs a new table, so existing saves are not wiped.
 		SCHEMA_VERSION			= 12,
 
-		/// How long after a soft delete the final delete becomes possible.
-		/// Zero: a solo save has nobody to protect a character from, so the
-		/// final-delete button is live the moment the character is deleted.
-		/// (dbo.gup_delete_unit used one minute; the live global service used
-		/// days, which is what the STR_ID_16102 confirmation text still says -
-		/// that string is baked into the .kom string table and gates nothing.
-		/// The only real gate is KUnitInfo::m_trDelAbleDate - see DelAbleDate.)
-		DELETE_WAIT_SECONDS		= 0,
+		//{{ Iruha : 2026-09-16 // Vanilla hardcodes iDelableDay = 1 (one full
+		// day) for every region (GSGameDBThread.cpp). This build has no
+		// final-delete UI at all (restore is the only exit from the pending
+		// state - see SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU), so the value
+		// only governs what m_tDelAbleDate the delete ack carries and what
+		// STR_ID_16103 prints; it is not something a player waits out on a
+		// button. Five minutes rather than a day, so a play-test that does
+		// exercise the (currently unreachable) final-delete packet directly
+		// doesn't have to wait a day for it to unblock. The STR_ID_16102 /
+		// STR_ID_16103 confirmation text still says seven days - that string
+		// is baked into the .kom string table and gates nothing; the only
+		// real gate is KUnitInfo::m_trDelAbleDate, computed by DelAbleDate.
+		DELETE_WAIT_SECONDS		= 300,
 
-		/// How far into the past a zero-wait able-date is placed. See
-		/// DelAbleDate for why it cannot simply be "now".
+		/// Backdate used only when DELETE_WAIT_SECONDS is 0 (not the current
+		/// value - see above). DelAbleDate's strict "<" comparison against
+		/// GetServerCurrentTime64() can never be satisfied by returning
+		/// exactly "now", so a zero wait is placed this far in the past
+		/// instead. See DelAbleDate.
 		DELETE_CLOCK_SLACK_SECONDS = 60,
+		//}}
 
 #ifdef SERV_IRUHADEV_MAX_UNIT_SLOTS
 		/// Character slots on a fresh account, raised from the original
@@ -509,7 +518,11 @@ public:
 	// units
 	bool	LoadUnits( UidType nUserUID, OUT std::vector< KOfflineUnitRow >& vecOut );
 	bool	LoadUnit( UidType nUnitUID, OUT KOfflineUnitRow& kOut );
-	bool	IsNickNameTaken( const std::wstring& wstrNickName );
+	//{{ Iruha : 2026-09-16 // iExcludeUnitUID lets a restore ask "is this name
+	// held by anyone ELSE" instead of "held by anyone" - see the .cpp for why
+	// that distinction matters now that a soft-deleted unit keeps its name.
+	bool	IsNickNameTaken( const std::wstring& wstrNickName, UidType iExcludeUnitUID = 0 );
+	//}}
 	int		CountLiveUnits( UidType nUserUID );
 
 	/// Inserts with del_date == reg_date, seeds the inventory sizes, and hands

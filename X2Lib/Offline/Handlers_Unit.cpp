@@ -417,10 +417,13 @@ void CX2OfflineServer::BuildDeleteUnitAck( KOfflineSession& kSes, UidType iUnitU
 
 	__int64 tNow = (__int64)::_time64( NULL );
 
-	// Soft delete only - never DELETE FROM. The row keeps its nickname so the
-	// character-select screen can still draw the slot; the name itself is
-	// released for reuse because IsNickNameTaken() only looks at live units,
-	// which is what dbo.gup_delete_unit achieves by nulling GUnitNickName.
+	//{{ Iruha : 2026-09-16 // Soft delete only - never DELETE FROM. The row
+	// keeps its nickname so the character-select screen can still draw the
+	// slot, and the name now stays HELD (not released) until a final delete,
+	// matching dbo.gup_delete_unit's real two-stage nulling of GUnitNickName
+	// rather than nulling it at reservation time. See IsNickNameTaken in
+	// X2OfflineDB.cpp for the restore-time exception this requires.
+	//}}
 	if( false == pDB->SoftDeleteUnit( iUnitUID, tNow ) )
 	{
 		kAck.m_iOK = NetError::ERR_DELETE_UNIT_05;		///< delete failed
@@ -546,10 +549,13 @@ bool CX2OfflineServer::Handler_EGS_RESTORE_UNIT_REQ( KOfflineSession& kSes, cons
 		return Reply( kSes, EGS_RESTORE_UNIT_ACK, kAck );
 	}
 
-	// A live character may have taken the name in the meantime; restoring on
-	// top of it would give two characters the same nickname.
-	if( true == pDB->IsNickNameTaken( kRow.m_wstrNickName ) )
+	//{{ Iruha : 2026-09-16 // A live character may have taken the name in the
+	// meantime; restoring on top of it would give two characters the same
+	// nickname. Exclude this unit's own row - it now holds its own name
+	// while pending, so without the exclusion this would always refuse.
+	if( true == pDB->IsNickNameTaken( kRow.m_wstrNickName, kRow.m_nUnitUID ) )
 	{
+	//}}
 		kAck.m_iOK = NetError::ERR_RESTORE_UNIT_01;
 
 		CX2OfflineLog::Server( L"RESTORE  refused unitUID=%I64d - '%s' is in use again",

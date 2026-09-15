@@ -3688,12 +3688,8 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 // Author: Iruha
 // Date: 2026-09-11
 // Description: A unit pending deletion (m_bDeleted) had no in-slot overlay
-//              and no way to restore or permanently delete it - clicking its
-//              slot just re-showed a dead-end OK box (STR_ID_30401). The
-//              restore/final-delete network flow was already fully wired
-//              (Handler_EGS_RESTORE_UNIT_REQ, Handler_EGS_FINAL_DELETE_UNIT_REQ,
-//              their own confirm dialogs via SUSUCM_RESTORE_UNIT /
-//              SUSUCM_FINAL_DELETE_UNIT) but had no UI entry point anywhere.
+//              and no way to restore it - clicking its slot just re-showed
+//              a dead-end OK box (STR_ID_30401).
 //
 //              This repurposes the slot's previously-dead ButtonDeleteUnit
 //              (index 5, see SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON just
@@ -3702,12 +3698,33 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              has m_bDeleted set, using its already-gray BT_CHALIST_GRAY
 //              texture. Clicking it re-selects the unit exactly like the
 //              normal select button (same SLOT_BUTTON_<uid> name, same
-//              SUSUCM_UNIT_BUTTON_UP message). The dead-end OK box (both at
-//              the slot double-click and at the channel-select-step proceed
-//              check) is replaced with an Ok/Cancel chooser wired directly to
-//              the existing SUSUCM_RESTORE_UNIT (Ok) / SUSUCM_FINAL_DELETE_UNIT
-//              (Cancel) messages, so both existing confirm-dialog chains get a
-//              real trigger for the first time.
+//              SUSUCM_UNIT_BUTTON_UP message).
+//
+// Amended 2026-09-16: the original version of this flag replaced the dead-end
+//              OK box with an Ok/Cancel chooser whose Cancel button fired
+//              SUSUCM_FINAL_DELETE_UNIT - permanently destroying the
+//              character with no confirmation of its own. That was wrong on
+//              two counts. First, the client's own ErrorLog.txt shows
+//              "final_delete_unit" and "restore_unit" failing GetControl at
+//              every character-list load: the two buttons vanilla drives
+//              restore/final-delete from (X2StateServerSelect.cpp:10343-10385)
+//              were never added to this build's DLG_UI_Character_Selection_
+//              Back_New.lua, so - contrary to what this comment used to claim
+//              - true vanilla on this build cannot reach either action from
+//              the UI at all; it is not that no entry point existed, but that
+//              the two that do exist point at controls the shipped dialog
+//              lacks. Second, and regardless of what vanilla can reach, no
+//              destructive action belongs on a Cancel button.
+//
+//              The slot click now shows a single Ok/Cancel box worded as
+//              vanilla's own restore confirm (STR_ID_16106, the same call
+//              vanilla already makes at :1687) and sends
+//              SUSUCM_RESTORE_UNIT_CHECK on Ok; Cancel just closes it. There
+//              is deliberately no final-delete entry point - a pending
+//              character stays recoverable indefinitely. SUSUCM_RESTORE_UNIT
+//              (:1674) and the vanilla final_delete_unit/restore_unit button
+//              wiring (:10343-10385) are both left in place, unreachable, so
+//              either lights up for free if the Lua ever gains those controls.
 #define SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU
 //////////////////////////////////////////////////////////////////////////
 

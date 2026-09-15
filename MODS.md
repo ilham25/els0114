@@ -28,6 +28,8 @@ column.
 | `SERV_IRUHADEV_AIPARTY_PERSIST` | 2026-09-06 | `KTDXLIB/Always.h:2560` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/X2Game.h:660-675`, `X2Lib/X2Game.cpp:197-199`, `X2Lib/X2Game.cpp:4958-4999`, `X2Lib/X2Game.cpp:7234` (`GetOfflinePartyBotPos`), `X2Lib/X2Game.cpp:7306` (`IsOfflinePartyBotUID`), `X2Lib/X2Game.cpp:7347` (`RepositionOfflinePartyBots`), `X2Lib/X2DungeonGame.cpp:685-707`, `X2Lib/X2DungeonGame.cpp:878-885` | -- |
 | `SERV_IRUHADEV_LEVEL_CAP_80` | 2026-09-08 | `KTDXLIB/Always.h:2638` (redefines the studio's `USE_MAXLEVEL_LIMIT_VAL` from `KTDXLIB/OnlyGlobal/Always_US.h:75`) | `X2Lib/X2Game.h:34` and `X2Lib/X2UIPersonalShopBoard.h:12` pick it up by macro expansion; compile-time check in `X2Lib/Offline/Handlers_Room.cpp:2711` | -- |
 | `SERV_IRUHADEV_OFFLINE_FETCH_AURA_ALWAYS` | 2026-09-08 | `KTDXLIB/Always.h:2672` (nested under `SERV_IRUHADEV_OFFLINE`) | `X2Lib/Offline/Handlers_Social.cpp:1541` (the force, in `MakePetInfo`), `:1574` (`IsPetPastCrystalStage`), `:1620` (the per-pet log line), `X2Lib/Offline/Handlers_Inventory.cpp:872` (item 500720 refused), `X2Lib/Offline/X2OfflineServer.h:490` | -- |
+| `SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON` | 2026-09-11 | `KTDXLIB/Always.h:3684` | `X2Lib/X2StateServerSelect.cpp:11097-11103` (`CreateUnitButtonNew`) | -- |
+| `SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU` | 2026-09-11, amended 2026-09-16 (twice) | `KTDXLIB/Always.h:3728` (nested under `SERV_UNIT_WAIT_DELETE`) | `X2Lib/X2StateServerSelect.cpp:1407` (down-state reset), `:2210`, `:3203`, `:3319`, `:3434` (immediate confirm on select), `:11196`, `:11234`, `:11303`; the first 2026-09-16 amendment also touches `X2Lib/Offline/X2OfflineDB.h:401-419,512`, `X2Lib/Offline/X2OfflineDB.cpp:1119-1145,1272-1285`, `X2Lib/Offline/Handlers_Unit.cpp:420-425,552-556` | -- |
 
 What each one does:
 
@@ -441,6 +443,138 @@ studio's `#define` is warning about. Offline has no `GameSysVal` and never sends
 Client-only; no server rebuild. Nothing under `KncWX2Server/Common/` is touched.
 Reverting is safe for a character at or below 67; a character already past it
 keeps its stored level and EXP, but the EXP bar clamps and further gains stop.
+
+### Character deletion: restore-only pending-delete flow
+
+**Defined in** `KTDXLIB/Always.h` -- `SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON`
+and `SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU`, both introduced 2026-09-11 and
+undocumented until now.
+
+Vanilla US deletion is two-stage under the studio's own `SERV_UNIT_WAIT_DELETE`:
+deleting a character reserves it rather than removing it -- it stays listed,
+greyed, and recoverable -- and two dedicated buttons on the character-select
+dialog, `restore_unit` and `final_delete_unit`, restore it or make the deletion
+permanent after a wait period. **Neither button exists in this build's shipped
+`DLG_UI_Character_Selection_Back_New.lua`** -- confirmed from the running
+client's own `ErrorLog.txt`, which logs a failed `GetControl` for both names at
+every character-list load. So on this build, true vanilla can reserve a
+deletion but can reach neither restore nor final-delete from the UI at all; the
+network flow the studio wired (`Handler_EGS_RESTORE_UNIT_REQ`,
+`Handler_EGS_FINAL_DELETE_UNIT_REQ`, `X2StateServerSelect.cpp:10343-10385`) is
+real and complete, just unreachable.
+
+`SERV_IRUHADEV_FIX_CHAR_SELECT_DELETE_BUTTON` is an unrelated, pure bug fix:
+`CreateUnitButtonNew()` never hid slot control index 5 (`ButtonDeleteUnit`,
+`DLG_UI_Character_Selection_Slot_New.lua`'s 6th per-slot button), which
+intercepted every click before the real select button, silently dropping it.
+
+`SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU` repurposes that now-hidden button as
+a grey pending-delete overlay, and gives restore a UI entry point by way of the
+slot click. **Its original 2026-09-11 version was wrong**: clicking a pending
+slot opened an Ok/Cancel box whose *Cancel* button fired
+`SUSUCM_FINAL_DELETE_UNIT`, permanently destroying the character with no
+confirmation of its own. Amended 2026-09-16:
+
+- the slot click now shows a single Ok/Cancel box worded as vanilla's own
+  restore confirm (`STR_ID_16106`, the exact call vanilla already makes at
+  `X2StateServerSelect.cpp:1687`) and sends `SUSUCM_RESTORE_UNIT_CHECK` on Ok;
+  Cancel just closes it. Nothing destructive is reachable from this menu.
+- there is deliberately **no final-delete UI** -- a pending character stays
+  recoverable indefinitely, matching what true vanilla actually permits on
+  this build. `SUSUCM_RESTORE_UNIT` and the two vanilla button call sites are
+  left in place, unreachable, so either lights up for free if the shipped
+  dialog ever gains the missing controls.
+- `X2Lib/Offline/X2OfflineDB.cpp`'s `IsNickNameTaken` used to free a pending
+  unit's nickname immediately on soft delete (`del_date = reg_date` filter),
+  diverging from vanilla, which holds the name until final delete. With
+  restore now the only exit from the pending state, that divergence was a real
+  hazard -- delete "Bob", create a new "Bob", and the old "Bob" could never be
+  restored again. It now takes an `iExcludeUnitUID` parameter so the name stays
+  held while pending, except against the pending unit's own row (restore would
+  otherwise refuse itself). One consequence of combining "hold the name" with
+  "no final-delete UI": the name is held **permanently** once a character is
+  deleted and never restored, since nothing releases it. Acceptable at solo-save
+  scale; noted here so it isn't mistaken for a bug later.
+- the wait period (`DELETE_WAIT_SECONDS`, `X2OfflineDB.h`) is 5 minutes rather
+  than vanilla's hardcoded 1 day (`GSGameDBThread.cpp`'s `iDelableDay = 1` for
+  every region). With no final-delete UI this only governs the date shown in
+  `STR_ID_16103` and the ack field a final-delete packet would check if one
+  ever arrived; it is not something a player waits out on a button.
+- `CX2OfflineDB::FinalDeleteUnit`'s child-table cascade (`szTables`) was missing
+  four tables added after the list was last extended (`unit_pet`,
+  `unit_riding_pet`, `unit_skill_unsealed`, `unit_skill_note`). Fixed, though
+  currently latent -- nothing in the UI reaches final delete.
+
+**Corrected 2026-09-16, same day, from play-testing:** the first cut of the
+single-confirm slot click above looked like it did nothing. Two separate
+defects, both in `X2StateServerSelect.cpp`, both pre-dating this flag rather
+than introduced by it:
+
+- **The click only registers on a slot that is already selected.**
+  `UnitButtonUp( CX2Unit* pUnit )` only reaches the `m_bDeleted` check inside
+  its `if( m_pSelectUnit == pUnit )` branch -- the first click on a pending
+  slot takes the *other* branch (a plain reselect: `m_pSelectUnit = pUnit`,
+  `CreateServerSelectUnitViewerUI( pUnit )`, no dialog), so from the player's
+  side a first click looked exactly like "nothing happened, just highlighted."
+  A live character has the same two-click structure, but the first click's
+  reselect is a real action there (it swaps which character's model is
+  shown); for a pending character it wasn't, so the requirement was more
+  visible. Fixed by raising the same restore confirm immediately in that
+  reselect branch too, gated on `pUnit->AccessUnitData().m_bDeleted`, closing
+  any dialog already open first (`SAFE_DELETE_DIALOG( m_pDLGDeleteUnitCheck )`)
+  in case a different pending slot's confirm was still up. The original
+  second-click path (`if( m_pSelectUnit == pUnit )`) is left in place and
+  still fires if a player clicks an already-selected pending slot again --
+  harmless, since re-raising the same confirm on a unit already confirmed
+  pending is a no-op state-wise.
+- **Multiple pending slots could show "pressed" at once**, unlike a live
+  slot, where clicking a new one always released the last one. Root cause:
+  `SUSUCM_UNIT_BUTTON_UP`'s `FIX_BUTTON_CRASH` reset loop (`Always.h`,
+  studio code, unconditionally on) walks every slot and resets control index
+  0's `SetDownStateAtNormal` -- but a pending slot's clickable control is
+  index 5 (`ChangeUnitButtonInfo`, this flag), which the loop never touches.
+  So a pending slot's pressed state, once set, was never cleared by clicking
+  a different slot afterward. Fixed by resetting index 5 in the same loop,
+  gated on this flag since index 5 is only a real interactive button under
+  it.
+
+**A third defect, found the same day after the above two shipped, is what had
+actually been silently defeating both of them:** clicking a pending slot did
+nothing at all -- no model swap, no dialog, restore and (the still-hypothetical)
+delete both unreachable. Diagnosed with a temporary logging pass
+(`SERV_IRUHADEV_PENDING_DELETE_DEBUG`, removed once this was confirmed fixed;
+see the *Deploying the offline client* diagnostic pattern in `CLAUDE.md`), which
+showed the clicked button's own name had silently become `SLOT_BUTTON_<uid>100`
+-- three extra digits nobody wrote.
+
+Root cause: `ChangeUnitButtonInfo` (`X2StateServerSelect.cpp`) names
+`pSelectUnitButton` and `pDeleteUnitButton` **identically**,
+`SLOT_BUTTON_<uid>`, since both represent the same slot and only one is ever
+shown. It used `SetName` for both. `SetName` registers the name in the
+dialog's `m_ControlsMap` for `GetControl(L"name")` lookups, and
+`CKTDGUIDialog::ReNameControl` -- studio code -- silently disambiguates any
+collision by appending a counter starting at **100**. Since
+`pSelectUnitButton` claims the name first, `pDeleteUnitButton` collided and
+was quietly renamed to `SLOT_BUTTON_<uid>100`. `SUSUCM_UNIT_BUTTON_UP`'s
+`tempButtonName.substr(12)` then parsed a UID with that spurious suffix,
+matching no real character, so `GetUnitByUID()` returned `NULL` and the
+click silently did nothing -- on *every* pending slot, unconditionally,
+regardless of the two fixes above.
+
+Nothing looks `pDeleteUnitButton` up by name anywhere (only by index,
+`GetControl(5)`), so the fix is `SetNameByForce` instead of `SetName` --
+same string, but it only sets the control's own name and never touches the
+map or its collision check. Not a workaround: `SetNameByForce` is the
+correct call for a control nothing ever looks up by name, and it was
+available already (`CKTDGUIControl::SetNameByForce`, used elsewhere in the
+engine for exactly this reason).
+
+Client-only; no server rebuild -- the offline emulator files above are part of
+`SERV_IRUHADEV_OFFLINE`, not `KncWX2Server/Common/`. Reverting
+`SERV_IRUHADEV_PENDING_DELETE_UNIT_MENU` returns to the studio's own dead-end OK
+box (`STR_ID_30401`) on a pending slot; the character stays recoverable only by
+undeleting through direct DB access, since there is still no in-game
+final-delete path either way.
 
 
 ## Reverting to stock
