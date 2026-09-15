@@ -39,9 +39,12 @@ if not exist "%EXE%" (
 	echo   %EXE% is not in this directory:
 	echo     %CD%
 	echo.
-	echo   Build it and deploy it - see OFFLINE_MODE_PLAN.md, "Verification":
-	echo     msbuild X2\X2_2010.vcxproj /p:Configuration=US_SERVICE /p:Platform=Win32 /p:SolutionDir=[Trunk]\
-	echo     copy X2\US_SERVICE\x2.exe "%CD%\%EXE%"
+	echo   Build it and deploy it - see CLAUDE.md, "Toolchains" ^(config is now
+	echo   US_INTERNAL, not US_SERVICE - build X2ServerProtocol, KTDXLIB, X2Lib,
+	echo   then X2, in that order, each with /p:SolutionDir=[Trunk]\ ^(forward
+	echo   slashes, trailing slash inside the value^):
+	echo     msbuild X2\X2_2010.vcxproj /p:Configuration=US_INTERNAL /p:Platform=Win32 /p:SolutionDir=[Trunk]\
+	echo     copy X2\US_INTERNAL\x2.exe "%CD%\%EXE%"
 	echo.
 	pause
 	exit /b 1

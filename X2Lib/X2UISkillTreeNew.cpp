@@ -6347,6 +6347,17 @@ void CX2UISkillTreeNew::SetBlindSelectSkill()
 				return;
 			}
 
+//{{ Iruha : 2026-09-15 // SKILLTREE_NO_LOCK: SetBlindSelectSkill is the real gate - it
+//   sets m_bSelectSkillBlind, which disables dragging, the learn button, and shows the
+//   no-learn overlay for whichever of the two choice skills is NOT already invested in.
+//   The other call site in this file (ShowSlotPicture/STSAPT_SELECT) is cosmetic only -
+//   patching it alone left this function still locking out the opposite choice.
+#ifdef SERV_IRUHADEV_SKILLTREE_NO_LOCK
+			itLeftUISet->second.m_bSelectSkillBlind		= false;
+			itRightUISet->second.m_bSelectSkillBlind	= false;
+
+			continue;
+#else
 #if defined( _IN_HOUSE_ ) || defined( _IN_HOUSE_SERVICE_READY_QA_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
 			/// 개발자 기능 - 양쪽 모두 스킬이 찍혀있다면, 블라인드 해제
 			if( true == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
@@ -6403,6 +6414,8 @@ void CX2UISkillTreeNew::SetBlindSelectSkill()
 					itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2지선다 우측 스킬 블라인드 해제
 				}
 			}
+#endif SERV_IRUHADEV_SKILLTREE_NO_LOCK
+//}}
 		}
 	}
 }
