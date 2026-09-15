@@ -940,6 +940,11 @@ private:
 	void PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpcID, int iED,
 					  const VECTOR3& kDiePos );
 
+	/// Grants one quest-collection item straight to inventory - no floor
+	/// object, no drop UID. Live never puts these on the floor either; see
+	/// PushNpcDrop's phase-6 comment and this function's own comment for why.
+	void GrantQuestItemDrop( KOfflineSession& kSes, int iItemID );
+
 	/// GetEDItemID: which coin represents this much ED.
 	/// KDropTable::GetEDItemID (KDropTable.cpp:1166) verbatim.
 	static int EDCoinItemID( int iED );

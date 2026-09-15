@@ -2444,10 +2444,25 @@ void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpc
 
 	// Phase 6: the quest items an active collection quest asks for. These do not
 	// come out of the drop table at all - on live they are rolled per user from
-	// the quests that user is carrying (KRoomUser::GetQuestDropItemInDungeon),
-	// which is why a monster that drops nothing for one player drops a quest
-	// item for another. Appended to the same list so they scatter from the same
-	// corpse and are picked up by the same code.
+	// the quests that user is carrying (KRoomUser::GetQuestDropItemInDungeon).
+	//
+	// They do NOT scatter from the corpse, and folding them into vecItemID here
+	// (as this code used to) was wrong: BattleFieldRoom.cpp:2304 (and
+	// DungeonRoom.cpp's equivalent) sends a quest-item hit straight to the
+	// killing player's own GameServer session as
+	// ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT with GIT_QUEST_ITEM, never touching
+	// KEGS_DROP_ITEM_NOT/CX2DropItemManager - and the client's
+	// Handler_EGS_GET_ITEM_NOT (X2Game.cpp:9241) confirms it: GIT_QUEST_ITEM
+	// resolves the item templet straight from m_iItemID and never calls
+	// m_pDropItemManager, so there is no floor object and no particle. Most
+	// quest-collection items have no m_DropViewer for exactly that reason -
+	// they were never meant to be drawn on the ground - so routing them through
+	// AddDropItem made CreateSequenceHandle fail, which popped the in-house
+	// "There is no drop viewer" message box and then had
+	// CX2DropItemManager::Update erase the entry on the very next frame
+	// (X2DropItemManager.cpp:99-112) - before the player could ever walk up and
+	// request it. Granting the item directly, as below, is both correct and
+	// what makes the drop viewer irrelevant.
 	{
 		KOfflineUnitRow kQuestRow;
 		if( true == LoadQuestState( kSes, kQuestRow ) )
@@ -2459,7 +2474,7 @@ void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpc
 				m_kRoom.m_kInfo.m_iBattleFieldID, iNpcID, kQuestRow, vecQuestItem );
 
 			for( size_t i = 0; i < vecQuestItem.size(); ++i )
-				vecItemID.push_back( vecQuestItem[i] );
+				GrantQuestItemDrop( kSes, vecQuestItem[i] );
 		}
 	}
 
@@ -2545,6 +2560,55 @@ void CX2OfflineServer::PushNpcDrop( KOfflineSession& kSes, int iNpcUID, int iNpc
 	// CX2Game::Handler_EGS_DROP_ITEM_NOT is the sole caller of
 	// CX2DropItemManager::AddDropItem (X2Game.cpp:8315-8327).
 	Reply( kSes, EGS_DROP_ITEM_NOT, kNot );
+}
+
+// Grants one quest-collection item straight to the killing player's
+// inventory, exactly as BattleFieldRoom.cpp/DungeonRoom.cpp's
+// ERM_GET_ITEM_INSERT_TO_INVENTORY_NOT does on live - no floor object, no
+// drop UID, no particle. See PushNpcDrop's phase-6 comment for why this has
+// to be separate from the ordinary AddDropItem/EGS_GET_ITEM_REQ path.
+void CX2OfflineServer::GrantQuestItemDrop( KOfflineSession& kSes, int iItemID )
+{
+	// The display half, mirroring the tail of Handler_EGS_GET_ITEM_REQ below -
+	// GIT_QUEST_ITEM tells CX2Game::Handler_EGS_GET_ITEM_NOT to resolve the
+	// templet from m_iItemID directly rather than asking the drop manager for
+	// a dropUID it was never given.
+	KEGS_GET_ITEM_NOT kNot;
+	kNot.m_GetUnitUID		= kSes.m_nSelectedUnitUID;
+	kNot.m_iItemID			= iItemID;
+	kNot.m_iDropItemUID		= 0;	// unused by the client for GIT_QUEST_ITEM
+	kNot.m_cGetItemType		= KEGS_GET_ITEM_NOT::GIT_QUEST_ITEM;
+	kNot.m_bIsItemSuccess	= true;
+	kNot.m_iTotalED			= 0;
+	kNot.m_cEnchantLevel	= 0;
+
+	Reply( kSes, EGS_GET_ITEM_NOT, kNot );
+
+	// The inventory half. Same call the ordinary pickup path uses.
+	CX2OfflineInventory* pInven = CX2OfflineInventory::Instance();
+
+	std::vector< KInventoryItemInfo > vecChanged;
+	int iInserted = 0;
+
+	if( false == pInven->InsertItem( iItemID, 1, 0, vecChanged, iInserted ) )
+	{
+		CX2OfflineLog::Server( L"QUEST    item %d could not be granted - the inventory is full,"
+			L" and the temp inventory is not implemented offline, so it is lost", iItemID );
+		return;
+	}
+
+	KEGS_GET_ITEM_REALTIME_NOT kRealtime;
+	kRealtime.m_vecKInventorySlotInfo = vecChanged;
+
+	Reply( kSes, EGS_GET_ITEM_REALTIME_NOT, kRealtime );
+
+	if( NULL != g_pData->GetItemManager()->GetItemTemplet( iItemID ) )
+		m_kRoom.m_mapObtainedItem[ iItemID ] += 1;
+
+	CX2OfflineLog::Server( L"QUEST    granted item %d directly (no floor drop - matches live)", iItemID );
+
+	// Phase 6: the bag just changed, which is what lets the quest step notice.
+	QuestOnInventoryChanged( kSes );
 }
 
 bool CX2OfflineServer::Handler_EGS_GET_ITEM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
