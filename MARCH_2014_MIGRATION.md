@@ -1073,6 +1073,28 @@ constructor defaults on the wire struct
 correct and should be left alone; send `1`, never `0`, for
 `m_nActiveSkillPagesNumber`.
 
+**The same underflow bit a second time, in the per-skill ACKs, and it was live
+in every install (found and fixed 2026-09-15).** `KEGS_GET_SKILL_ACK`,
+`KEGS_RESET_SKILL_ACK` and `KEGS_INIT_SKILL_TREE_ACK` each carry their own
+`m_iActiveSkillPageNumber`, unrelated to the `m_nActiveSkillPagesNumber`
+discussed above - this one is not about character select, it is the field the
+client's ACK handlers (`X2SkillTree.cpp:1962`, `:2270`, `:2439`) feed straight
+into `CX2UserSkillTree::SetUsingPage()` after *every* learn, reset, or
+whole-tree-reset request. The real server only ever echoes the request's own
+copy of the field back (`GSUserGameCommon.cpp:4534`, `:4882`, `:5267`) - it
+never derives it - and `X2Lib/Offline/Handlers_Skill.cpp` never set it at all,
+leaving it at the ACK struct's default-constructed `0`. `SetUsingPage(0)`
+underflows `m_usUsingPage` (a `USHORT`) to `65535`, and the very next line in
+the same handler, `SetSkillPoint()`, indexes `m_arrSkillPoint[65535]` - a
+`USHORT[3]` - with no bounds check at all: a wild heap write, not a read, and
+it fired on every single SP spend. When it didn't crash outright,
+`SetSkillLevelAndCSP()`'s own `m_vecSkillDataMap.size() <= usSkillPage_` guard
+caught the same `65535` and silently refused to write the skill's new level,
+so the SP still came off but the tree read as if nothing had ever been
+learned. Fixed by echoing `kReq.m_iActiveSkillPageNumber` into the ACK in all
+three handlers, matching the real server's behavior exactly - built and
+deployed 2026-09-15, play-test pending.
+
 **`SEnum::LOCAL_MAP_ID` re-pointing is a non-issue for this migration.**
 `KncWX2Server/Common/Enum/Enum.h:327-332` does show IDs 10000-10002
 re-assigned from `LMI_VELDER_*` to `LMI_RUBEN`/`LMI_ELDER`/`LMI_BESMA` (with

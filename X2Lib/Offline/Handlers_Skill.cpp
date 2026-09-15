@@ -46,6 +46,17 @@ bool CX2OfflineServer::Handler_EGS_GET_SKILL_REQ( KOfflineSession& kSes, const K
 	kAck.m_iRemainSP	= 0;
 	kAck.m_iRemainCSP	= 0;
 
+	// Echoed verbatim, matching GSUserGameCommon.cpp:4534 - the real server never
+	// derives this, it just hands the request's page number back. The client's
+	// ACK handler (X2SkillTree.cpp:1962) turns it straight into
+	// CX2UserSkillTree::SetUsingPage(), which subtracts 1 with no bounds check;
+	// leaving this field at its default-constructed 0 underflows m_usUsingPage
+	// (a USHORT) to 65535, and every later read or write that indexes off of it -
+	// AccessMapSkillAcquired(), GetSkillPoint(), SetSkillLevelAndCSP()'s own page
+	// array - either silently no-ops (the skill tree reads as fully unlearned)
+	// or walks off a fixed-size array (the crash the field's absence was causing).
+	kAck.m_iActiveSkillPageNumber = kReq.m_iActiveSkillPageNumber;
+
 	KOfflineUnitRow kRow;
 	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
 		return Reply( kSes, EGS_GET_SKILL_ACK, kAck );
@@ -229,6 +240,9 @@ bool CX2OfflineServer::Handler_EGS_RESET_SKILL_REQ( KOfflineSession& kSes, const
 	kAck.m_iSPoint		= 0;
 	kAck.m_iCSPoint		= 0;
 
+	// See the same field in Handler_EGS_GET_SKILL_REQ - echoed, never derived.
+	kAck.m_iActiveSkillPageNumber = kReq.m_iActiveSkillPageNumber;
+
 	KOfflineUnitRow kRow;
 	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
 		return Reply( kSes, EGS_RESET_SKILL_ACK, kAck );
@@ -286,6 +300,9 @@ bool CX2OfflineServer::Handler_EGS_INIT_SKILL_TREE_REQ( KOfflineSession& kSes, c
 	kAck.m_iOK		= NetError::ERR_ITEM_04;
 	kAck.m_iSPoint	= 0;
 	kAck.m_iCSPoint	= 0;
+
+	// See the same field in Handler_EGS_GET_SKILL_REQ - echoed, never derived.
+	kAck.m_iActiveSkillPageNumber = kReq.m_iActiveSkillPageNumber;
 
 	KOfflineUnitRow kRow;
 	if( false == pDB->LoadUnit( kSes.m_nSelectedUnitUID, kRow ) )
