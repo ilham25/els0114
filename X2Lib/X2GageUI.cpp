@@ -774,6 +774,12 @@ void CX2StatusGageUI::PushBuff(const BuffIcon& BuffIconInfo_, bool bIsDeBuff_)
 	}
 	else //기존에 등록되어 있었다면 플리커 정보만 초기화
 	{	
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		/// A second push for an already-tracked buff (e.g. two internal push sites for one apply, or a refresh/recast) must not be silently discarded
+		vector<BuffIcon>::iterator itDuration = std::_Find_if( pVecBuffList->begin(), pVecBuffList->end(), FindFunc );
+		if( itDuration != pVecBuffList->end() )
+			itDuration->fRemainTime = BuffIconInfo_.fRemainTime;
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 		InitBuffIconFlicker( BuffIconInfo_.eBuffID );
 	}
 }
@@ -1059,6 +1065,45 @@ void CX2StatusGageUI::InitBuffIconFlicker( BUFF_TEMPLET_ID eBuffID_ )
 		}
 	}			
 }
+
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-25
+// Description: Tick down each buff/debuff icon's local remaining-time copy and refresh its countdown text
+void CX2StatusGageUI::UpdateBuffDurationText()
+{
+	if( NULL == m_pDlgBuffIcon )
+		return;
+
+	const float fElapsedTime = g_pKTDXApp->GetElapsedTime();
+
+	vector<BuffIcon>* apVecBuffList[2] = { &m_vecBuffList, &m_vecDebuffList };
+	for( int i = 0; i < 2; ++i )
+	{
+		vector<BuffIcon>::iterator it = apVecBuffList[i]->begin();
+		for( ; it != apVecBuffList[i]->end(); ++it )
+		{
+			if( 0.f > it->fRemainTime )
+				continue;	/// no timer on this buff, string was never attached
+
+			it->fRemainTime = max( 0.f, it->fRemainTime - fElapsedTime );
+
+			WCHAR szStaticName[20];
+			StringCchPrintfW( szStaticName, 20, L"Buff_%d", it->eBuffID );
+
+			CKTDGUIStatic* pStaticBuffIcon = static_cast<CKTDGUIStatic*>( m_pDlgBuffIcon->GetControl( szStaticName ) );
+			if( NULL != pStaticBuffIcon )
+			{
+				WCHAR szDuration[16];
+				StringCchPrintfW( szDuration, 16, L"%d", static_cast<int>( it->fRemainTime ) );
+				pStaticBuffIcon->SetString( 0, szDuration );
+			}
+		}
+	}
+}
+//////////////////////////////////////////////////////////////////////////
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 #endif //BUFF_ICON_UI
 
 CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
@@ -2800,6 +2845,11 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 
 			UpdateGageForUV( pStaticOtherPlayerMp, 0, L"PARTY_MP", fMpPercent, true );
 		}
+
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		UpdateBuffDurationText();
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+
 		if ( m_pDLGOtherUnit != NULL && m_pDLGOtherUnit->GetShow() == true )
 		{
 			switch ( g_pMain->GetNowStateID() )
@@ -3316,6 +3366,10 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 			UpdateGageForUV( pStaticOtherPlayerMp, 0, L"PARTY_MP", fMpPercent, true );
 		}
 		UpdatePvpRank();
+
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		UpdateBuffDurationText();
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 	}
 }
 

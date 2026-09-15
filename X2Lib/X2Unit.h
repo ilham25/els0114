@@ -1011,7 +1011,13 @@ class CX2Unit : public CKTDXDeviceHolder, public CX2Unit_PreHeader
 
 #ifdef	SERV_EXPAND_QUICK_SLOT
 		void		SetExpandQuickSlot(bool bExpandQuickSlot) { m_bExpandQuickSlot = bExpandQuickSlot; }
+//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
+#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+		bool		IsExpandQuickSlot() const { return true; }
+#else
 		bool		IsExpandQuickSlot() const { return m_bExpandQuickSlot; }
+#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
+//}}
 #endif  SERV_EXPAND_QUICK_SLOT
 
 		int GetAverageItemlevel() const;

@@ -15,7 +15,7 @@ the build commands and is the other document a fresh session should read.
 | 3B | The entry-point character-select handshake | **DONE** (`2cf764a`); a tutorial auto-connect bug found and fixed 2026-09-15, built + deployed, play-test pending - see the "Auto-connect after character creation" note below |
 | 4 | Offline gameplay call sites | **DONE** (`76fcf9a`) |
 | 5 | AI party | built + deployed 2026-09-14, play-test pending |
-| 6 | The QoL flags | not started |
+| 6 | The QoL flags | built + deployed 2026-09-15, play-test pending |
 | 7 | Content, save migration, full verification | not started |
 | 8 | Documentation closeout | not started |
 
@@ -1031,9 +1031,34 @@ changes which branches of `X2StateServerSelect.cpp` are actually live.
 
 ## Corrections ledger
 
-Two findings from an earlier pass at this analysis were wrong or irrelevant,
-and are recorded here so a later phase does not re-adopt them from an older
-note or transcript.
+Three findings from an earlier pass at this analysis were wrong, incomplete,
+or irrelevant, and are recorded here so a later phase does not re-adopt them
+from an older note or transcript.
+
+**`BUFF_DURATION_TEXT`'s premise was stale: March ships a native duration-text
+feature that didn't exist in `BASE`/`OURS`.** `DISPLAY_BUFF_DURATION_TIME`
+(`KTDXLIB/Always.h`, unconditional, `hboh88` 2013-10-29) is a real studio
+feature new in the March snapshot - confirmed absent from both
+`git show 7b7e482:KTDXLIB/Always.h` and the OURS copy of `X2GageUI.cpp`. It
+ticks `CX2BuffTimeFinalizerTemplet::OnFrameMove` -> `CX2GageManager::SetDurationTime`
+-> a `CX2MyGageUI`-only override that writes string index 0 of the
+`Buff_%d` static, and it already adds that string widget in the shared
+`CX2StatusGageUI::SetBuffIconStatic`. It covers only the player's own gage UI
+(`SetDurationTime` is a no-op in the base class); party-member and PVP-opponent
+icons are untouched, which is the gap `SERV_IRUHADEV_BUFF_DURATION_TEXT`
+still fills. Restored with two blocks skipped rather than three added: the
+`X2GageUI.cpp` `AddString` call (block 2) and the `CX2MyGageUI::OnFrameMove`
+tick call (block 4) were dropped to avoid a second `UIStringData` on the same
+static and a second writer on the same string index; the dedup-path refresh,
+the new `UpdateBuffDurationText()` function, and its calls from
+`CX2PartyMemberGageUI::OnFrameMove` and `CX2PVPPlayerGageUI::OnFrameMove` were
+kept as-is, reusing the string widget the studio already creates. All other
+BUFF_DURATION_TEXT files (`X2BuffFinalizerTemplet.h/.cpp`, `X2BuffTemplet.h/.cpp`,
+`X2GameUnit.cpp`, `X2PremiumBuffManager.cpp`) went in unchanged from OURS since
+they only compute/carry the remaining-time value and never touch the shared
+string widget. Play-test criterion is therefore *not* "buff duration text
+shows" (the studio feature alone already satisfies that for the player) but
+specifically a countdown on a **party member's or PVP opponent's** buff icon.
 
 **`SetUsingPage`'s off-by-one.** An earlier draft recommended sending
 `m_nActiveSkillPagesNumber = 0` to "reset" the active page. This is inverted

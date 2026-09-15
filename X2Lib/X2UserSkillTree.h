@@ -344,7 +344,13 @@ public:		/// public function
 
 	CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE GetSkillSlotBExpirationState() const
 	{
+//{{ Iruha : 2026-08-25 // Skill Slot B open by default, no medal purchase required
+#ifdef SERV_IRUHADEV_SKILL_SLOT_B_FREE
+		return SSBES_PERMANENT;
+#else
 		return m_eSkillSlotBExpirationState; 
+#endif SERV_IRUHADEV_SKILL_SLOT_B_FREE
+//}}
 	}
 	void SetSkillSlotBExpirationState(CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE val)
 	{

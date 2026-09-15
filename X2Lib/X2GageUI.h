@@ -76,10 +76,19 @@ public:
 		int								iBuffName;
 		int								iBuffDesc;
 		bool							bNew;
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		float							fRemainTime;	/// Remaining seconds shown over the icon; -1.f = no timer
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		BuffIcon( BUFF_TEMPLET_ID eBuffID_, const wstring& FileName_, const wstring& KeyName_, const int BuffName_, const int BuffDesc_, const float fRemainTime_ = -1.f ):
+		eBuffID(eBuffID_), szTextureFileName(FileName_), szTextureKeyName(KeyName_), iBuffName(BuffName_), iBuffDesc(BuffDesc_), bNew(true), fRemainTime(fRemainTime_)
+		{}
+#else
 		BuffIcon( BUFF_TEMPLET_ID eBuffID_, const wstring& FileName_, const wstring& KeyName_, const int BuffName_, const int BuffDesc_ ):
 		eBuffID(eBuffID_), szTextureFileName(FileName_), szTextureKeyName(KeyName_), iBuffName(BuffName_), iBuffDesc(BuffDesc_), bNew(true)
 		{}
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 	};
 #endif //BUFF_ICON_UI
 
@@ -302,6 +311,9 @@ protected:
 
 #ifdef BUFF_ICON_UI
 	void	SetBuffIconStatic( const BuffIcon& BuffIconInfo_, int iIndex_, bool bIsDebuff_, const D3DXVECTOR2& vSize_ );
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+	void	UpdateBuffDurationText();
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 #endif //BUFF_ICON_UI
 
 protected:

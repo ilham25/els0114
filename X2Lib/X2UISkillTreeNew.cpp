@@ -404,9 +404,15 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			{
 				if ( CX2UISkillTreeNew::STST_SELECT_SKILL_LEFT == iIndexInTier )	/// 왼쪽 스킬이면, 선택 가능 표시
 				{
+//{{ Iruha : 2026-08-27 // SKILLTREE_NO_LOCK removes the choice restriction, so the "AbleChoice" indicator no longer applies
+#ifdef SERV_IRUHADEV_SKILLTREE_NO_LOCK
+					ShowSlotPicture( false, pSlot, STSAPT_SELECT );
+#else
 					ShowSlotPicture( true, pSlot, STSAPT_SELECT );
 
 					pDLGUISkillTree->ChangeSequence( pSlot, true );		/// 2지선다 선택 가능 최상위로 설정
+#endif SERV_IRUHADEV_SKILLTREE_NO_LOCK
+//}}
 				}
 				else	/// 오른쪽 스킬이면, 선택 가능 해제 ( 왼쪽에서 출력할 것이다. )
 					ShowSlotPicture( false, pSlot, STSAPT_SELECT );

@@ -2341,6 +2341,12 @@ int CX2UserSkillTree::GetSkillEquippedSlotIndex( CX2SkillTree::SKILL_ID eSkillID
 
 bool CX2UserSkillTree::GetEnabledSkillSlotB() const
 {
+//{{ Iruha : 2026-08-25 // Skill Slot B open by default, no medal purchase required
+#ifdef SERV_IRUHADEV_SKILL_SLOT_B_FREE
+	return true;
+#endif SERV_IRUHADEV_SKILL_SLOT_B_FREE
+//}}
+
 	switch( m_eSkillSlotBExpirationState )
 	{
 	case SSBES_EXPIRED:

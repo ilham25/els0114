@@ -132,6 +132,11 @@ public:
 	void GetFinalizerTempletPtrList( OUT vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ );
 	void ChangeFinalizerTempletPtrList( const vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ );
 
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+	/// Remaining seconds of the BFT_TIME finalizer, if any; -1.f if this buff has no time-based finalizer
+	float GetRemainDurationTime() const;
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+
 #ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	// 행동 불능 디버프 인가?, 특정 BBT 를 가지고 있으면 참을 반환
 	bool	IsNonControlDebuff();

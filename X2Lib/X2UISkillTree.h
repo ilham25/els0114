@@ -225,7 +225,13 @@ public:
 //}} kimhc // 2010.3.26 // 무한 스킬 버그 수정
 #ifdef REFORM_UI_SKILLSLOT 
 	CKTDGUIDialogType	GetDLGGameSkillSLot() {return m_pDLGGameSkillSlot; }
+//{{ Iruha : 2026-08-25 // Skill Slot B open by default, no medal purchase required
+#ifdef SERV_IRUHADEV_SKILL_SLOT_B_FREE
+	bool				IsExpandSkillSlot()	{return true; }
+#else
 	bool				IsExpandSkillSlot()	{return m_bIsExpandSkillSlot; }
+#endif SERV_IRUHADEV_SKILL_SLOT_B_FREE
+//}}
 	bool				GetShowEquipSkillGuide() {return m_bShowEquipSkillGuide; }
 #endif //REFORM_UI_SKILLSLOT
 

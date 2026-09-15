@@ -137,8 +137,13 @@ bool CX2BuffTemplet::SetFactor( const CX2BuffFactor& buffFactor_, CX2GameUnit* p
 #ifdef BUFF_ICON_UI		
 	if( true == GetUseBuffIcon() )
 	{
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+		CX2GageUI::BuffIcon BuffIconData( buffFactor_.GetBuffTempletID(), GetIconFileName(), 
+			GetIconKeyName(), GetBuffName(), GetBuffDesc(), GetRemainDurationTime() );
+#else
 		CX2GageUI::BuffIcon BuffIconData( buffFactor_.GetBuffTempletID(), GetIconFileName(), 
 			GetIconKeyName(), GetBuffName(), GetBuffDesc() );
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 		CX2GageManager::GetInstance()->PushBuff( pGameUnit_->GetUnitUID(), BuffIconData, IsDeBuff() );
 	}
 #endif //BUFF_ICON_UI
@@ -421,6 +426,23 @@ void CX2BuffTemplet::ChangeFinalizerTempletPtrList( const vector<CX2BuffFinalize
 	m_vecFinalizerPtr.resize( vecFinalizerPtr_.size() );
 	m_vecFinalizerPtr = vecFinalizerPtr_;
 }
+
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-08-25
+// Description: Remaining seconds of this buff's BFT_TIME finalizer, if any
+float CX2BuffTemplet::GetRemainDurationTime() const
+{
+	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
+	{
+		if ( NULL != ptrFinalizer && BFT_TIME == ptrFinalizer->GetType() )
+			return ptrFinalizer->GetRemainTime();
+	}
+	return -1.f;
+}
+//////////////////////////////////////////////////////////////////////////
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 
 /** @function : ReserveToFinish
 	@brief : 다음 체크시 종료되도록 예약 해놓는 함수

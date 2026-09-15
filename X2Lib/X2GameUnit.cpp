@@ -11271,8 +11271,13 @@ void CX2GameUnit::PushNewBuffTempletToGameUnit( IN CX2BuffTempletPtr ptrBuffTemp
 #ifdef BUFF_ICON_UI		
 			if( true == ptrCloneBuffTemplet->GetUseBuffIcon() )
 			{
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+				CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
+					ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc(), ptrCloneBuffTemplet->GetRemainDurationTime() ), ptrCloneBuffTemplet->IsDeBuff() );
+#else
 				CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(), 
 					ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc() ), ptrCloneBuffTemplet->IsDeBuff() );
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 			}
 #endif //BUFF_ICON_UI
 		}
@@ -12621,8 +12626,13 @@ void CX2GameUnit::SetKBuffFactorPacketToGameUnit( const vector<KBuffFactor>& vec
 #ifdef BUFF_ICON_UI
 					if( true == ptrCloneBuffTemplet->GetUseBuffIcon() )
 					{
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+						CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
+						ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc(), ptrCloneBuffTemplet->GetRemainDurationTime() ), ptrCloneBuffTemplet->IsDeBuff());
+#else
 						CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(), 
 						ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc() ), ptrCloneBuffTemplet->IsDeBuff());
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 					}
 #endif //BUFF_ICON_UI
 				}

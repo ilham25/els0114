@@ -42,6 +42,10 @@ public:
 
 	bool SetFactorFromPacketTemplateMothod( const KBuffFactor& kBuffFactor_, CX2GameUnit* pGameUnit_ );
 	BUFF_FINALIZER_TYPE GetType() const { return m_eType; }
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+	/// Remaining duration in seconds; -1.f sentinel means this finalizer has no timer (hit-count, state-change, etc.)
+	virtual float GetRemainTime() const { return -1.f; }
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 #ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
 	virtual void SetBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ){}
 #endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
@@ -110,6 +114,11 @@ public:
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
 	virtual void GetFactor( OUT vector<KBuffFinalizerFactor>& vecFactors_, const CX2GameUnit* pGameUnit_ ) const;
+
+#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
+	virtual float GetRemainTime() const { return m_fDurationTime; }
+#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+
 #ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
 	virtual void SetBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ){ m_eBuffTempleteID = eBuffTempletID_;}
 #endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
