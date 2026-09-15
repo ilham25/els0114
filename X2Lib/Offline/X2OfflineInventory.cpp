@@ -1187,12 +1187,11 @@ namespace
 	/// data, and because guarding rows behind NEW_CHARACTER_CHUNG and friends
 	/// would silently drop a class instead of reporting it.
 	///
-	/// Classes 7, 8 and 9 all carry Ara's set. That is what the live table says,
-	/// verbatim, and it is far more likely unfinished data than intent - Elesis
-	/// appears to have been given Ara's row and never corrected, and class 9 is
-	/// unreachable anyway because gup_create_unit rejects any class outside
-	/// 1..8. Transcribed as-is; the seeders log when a class is handed a set
-	/// that is not its own.
+	/// Classes 7, 8 and 9 each carry their own set. An earlier transcription of
+	/// this table had 8 and 9 copied from Ara's row (7); re-read from the live
+	/// database on 2026-09-15, they are distinct - Elesis (8) and class 9
+	/// (unreachable, since gup_create_unit rejects any class outside 1..8) both
+	/// have their own gear and costume IDs.
 	struct KBaseItemSet
 	{
 		int	m_iUnitClass;
@@ -1209,8 +1208,8 @@ namespace
 		{ 5, { 131645, 111110, 111111, 111112, 111113 }, { 130134, 130135, 130136, 130137, 130138 } },	///< Eve
 		{ 6, { 111114, 111115, 111116, 111117, 111118 }, { 133125, 133126, 133127, 133128, 133129 } },	///< Chung
 		{ 7, { 112700, 112701, 112702, 112703, 112704 }, {  41460,  41470,  41480,  41490,  41500 } },	///< Ara
-		{ 8, { 112700, 112701, 112702, 112703, 112704 }, {  41460,  41470,  41480,  41490,  41500 } },	///< Elesis - Ara's set, see above
-		{ 9, { 112700, 112701, 112702, 112703, 112704 }, {  41460,  41470,  41480,  41490,  41500 } },	///< unreachable, see above
+		{ 8, { 112985, 112986, 112987, 112988, 112989 }, {  41720,  41721,  41722,  41723,  41724 } },	///< Elesis
+		{ 9, { 112991, 112992, 112993, 112994, 112995 }, {  41757,  41758,  41759,  41760,  41761 } },	///< unreachable, see above
 	};
 
 	/// Where each half's five pieces go, in the same order the arrays list them.
@@ -1376,15 +1375,6 @@ bool CX2OfflineInventory::SeedPromotionItems( UidType nUnitUID, int iUnitClass )
 		CX2OfflineLog::Server( L"ITEM     NOTE dbo.GBase_Item has no row for class %d, so the"
 			L" character starts with no promotional costume", iUnitClass );
 		return false;
-	}
-
-	// The live table gives classes 7, 8 and 9 the same costume, so say so rather
-	// than letting Elesis quietly wear Ara's clothes with no note anywhere.
-	if( iUnitClass > 7 )
-	{
-		CX2OfflineLog::Server( L"ITEM     NOTE dbo.GBase_Item gives class %d the same set as"
-			L" class 7 (Ara). That is the live table verbatim, not a substitution made"
-			L" here - it looks like data the studio never finished", iUnitClass );
 	}
 
 	// Load first: the rows go straight into the slot grid, and the grid has to
