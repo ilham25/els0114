@@ -3746,3 +3746,59 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              never got the same guard.
 #define SERV_IRUHADEV_CHANNEL_CONNECT_GUARD
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-15
+// Description: Every X2Lib/Offline/*.cpp existence-probe ("is this script
+//              even in a .kom before I try LoadAndDoMemory on it") calls
+//              KGCMassFileManager::LoadDataFile( name ) with no third
+//              argument. That overload's bKeepCompressedData defaults to
+//              false (KGCMassFileManager.h:646/651), and
+//              X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS is unconditionally on
+//              (KTDX.h:407, via X2OPTIMIZE_APPLY_UNPACK_HACK_PREVENTION) -
+//              so every packed script here is stored as
+//              XOR(zlib(plaintext)), decrypt-after-compress. With
+//              bKeepCompressedData=false, KGCMassFileManager::_GetMemberFile
+//              tries to zlib-uncompress() the file's STILL-ENCRYPTED bytes
+//              itself (KGCMassFileManager.cpp:2052), which always fails
+//              ("incorrect header check", logged as KEM_ERROR390) because
+//              those bytes are not a zlib stream until the per-file XOR is
+//              removed first. The probe then reads pRealData == NULL and
+//              reports "not found in any .kom or on disk" for a file that
+//              is actually packed correctly - the very next
+//              g_pKTDXApp->LoadAndDoMemory() call, which passes
+//              bEncryption=true through to bKeepCompressedData=true and
+//              decrypts before decompressing, is never even reached. The
+//              studio's own loaders (LoadLuaTinker/LoadAndDoMemory, e.g.
+//              every KTDGUIDialog script and Enum.lua) never hit this
+//              because they don't do a separate bare-LoadDataFile probe
+//              first. Passing bKeepCompressedData=true on the probe too
+//              makes it agree with the real load: _GetMemberFile then hands
+//              back the still-compressed-and-encrypted bytes without trying
+//              to inflate them, which is enough to answer "does this file
+//              exist" without needing decryption to have happened yet.
+#define SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-15
+// Description: Leaving a field for a village and warping back got the
+//              player stuck - the second EGS_JOIN_BATTLE_FIELD_REQ failed
+//              with "ROOM ERROR asked for a room with no character
+//              selected". The client's GS connection is not one continuous
+//              session: it disconnects and reconnects onto a brand-new
+//              KOfflineSession (KOfflineSession::m_nSelectedUnitUID defaults
+//              to 0) both right after character-select and again on this
+//              kind of field<->village round trip, and unlike the account
+//              (CX2OfflineServer::m_nUserUID, already restored by login ID
+//              in EnsureAccount) nothing re-populated the character, because
+//              the dedicated gameplay session never re-sends
+//              EGS_SELECT_UNIT_REQ and Handler_EGS_SELECT_UNIT_REQ refuses a
+//              repeat of it once state is past S_SERVER_SELECT anyway. Adds
+//              a server-level CX2OfflineServer::m_nLastSelectedUnitUID,
+//              mirroring m_nUserUID's pattern, set alongside
+//              kSes.m_nSelectedUnitUID in Handler_EGS_SELECT_UNIT_REQ and
+//              restored onto every new session in OnSessionConnect.
+#define SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+//////////////////////////////////////////////////////////////////////////

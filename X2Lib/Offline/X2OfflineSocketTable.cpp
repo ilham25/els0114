@@ -183,7 +183,14 @@ void CX2OfflineSocketTable::EnsureLoaded()
 	lua_tinker::decl( pLuaState, "g_pCX2SocketItem", this );
 
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+#ifdef SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+	// bKeepCompressedData must match what LoadAndDoMemory will use below, or
+	// this probe tries to zlib-uncompress this still-XOR'd file itself and
+	// always fails. See Always.h for the full explanation.
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_SOCKET_TABLE, true, true );
+#else
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_SOCKET_TABLE );
+#endif SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
 
 	bool bRan = false;
 

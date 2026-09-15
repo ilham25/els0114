@@ -639,6 +639,11 @@ bool CX2OfflineServer::Handler_EGS_SELECT_UNIT_REQ( KOfflineSession& kSes, const
 
 	kSes.m_nSelectedUnitUID	= kRow.m_nUnitUID;
 	kSes.m_eState			= S_FIELD_MAP;
+#ifdef SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+	// See X2OfflineServer.h's m_nLastSelectedUnitUID - the copy that survives
+	// a mid-play GS reconnect, which this per-session field does not.
+	m_nLastSelectedUnitUID	= kRow.m_nUnitUID;
+#endif SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
 
 	//////////////////////////////////////////////////////////////////////////
 	// Author: Iruha

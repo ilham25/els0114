@@ -11,6 +11,9 @@ CX2OfflineServer::CX2OfflineServer()
 : m_nUserUID( 0 )
 , m_iUnitSlots( CX2OfflineDB::DEFAULT_UNIT_SLOTS )
 , m_wstrLoginID( L"" )
+#ifdef SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+, m_nLastSelectedUnitUID( 0 )
+#endif SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
 , m_nNextRoomUID( 1000 )
 , m_nNextAutoPartyUID( 1 )
 , m_bQuitRequested( false )
@@ -167,6 +170,16 @@ void CX2OfflineServer::OnSessionConnect( KSession* pSession, const char* szIP, u
 		kSes.m_pSession	= pSession;
 		kSes.m_eKind	= PK_UNKNOWN;
 		kSes.m_eState	= S_INIT;
+
+#ifdef SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+		// See m_nLastSelectedUnitUID's declaration: this session may be a GS
+		// reconnect mid-play (field <-> village), which never re-runs
+		// EGS_SELECT_UNIT_REQ. Restoring here rather than gating it behind
+		// m_kRoom.m_bActive on purpose - the very first reconnect after
+		// character-select (into the initial room) needs it too, and that
+		// happens before m_kRoom is ever populated.
+		kSes.m_nSelectedUnitUID = m_nLastSelectedUnitUID;
+#endif SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
 
 		m_mapSession[ pSession ] = kSes;
 	}

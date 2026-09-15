@@ -113,7 +113,14 @@ void CX2OfflineBattleField::UnbindGlobal()
 bool CX2OfflineBattleField::RunScript( const wchar_t* szName, int& iRowsBefore, int& iRowsNow )
 {
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+#ifdef SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+	// bKeepCompressedData must match what LoadAndDoMemory will use below, or
+	// this probe tries to zlib-uncompress this still-XOR'd file itself and
+	// always fails. See Always.h for the full explanation.
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szName, true, true );
+#else
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szName );
+#endif SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
 
 	// NOT `NULL == kInfo`. MASSFILE_MEMBERFILEINFO_POINTER is a STRUCT BY
 	// VALUE with an `operator const MASSFILE_MEMBERFILEINFO*() const` that
@@ -254,7 +261,14 @@ void CX2OfflineBattleField::EnsureServerDataLoaded()
 	// players. LoadDataFile will therefore fail unless it has been XOR-encrypted
 	// and packed in, so the miss is reported as guidance rather than as an error.
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+#ifdef SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+	// bKeepCompressedData must match what LoadAndDoMemory will use below, or
+	// this probe tries to zlib-uncompress this still-XOR'd file itself and
+	// always fails. See Always.h for the full explanation.
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_SERVER_DATA, true, true );
+#else
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( SCRIPT_SERVER_DATA );
+#endif SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
 
 	// NOT `NULL == kInfo`. MASSFILE_MEMBERFILEINFO_POINTER is a STRUCT BY
 	// VALUE with an `operator const MASSFILE_MEMBERFILEINFO*() const` that

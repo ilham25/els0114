@@ -1261,6 +1261,20 @@ private:
 	int											m_iUnitSlots;
 	std::wstring								m_wstrLoginID;
 
+#ifdef SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+	/// Mirrors m_nUserUID's job for the character rather than the account: the
+	/// GS reconnects onto a brand-new KOfflineSession (with m_nSelectedUnitUID
+	/// back at 0) every time it drops back to server-select and rejoins - e.g.
+	/// leaving a field for a village and warping back - and unlike the account,
+	/// nothing re-sends EGS_SELECT_UNIT_REQ on that new session to repopulate
+	/// it (Handler_EGS_SELECT_UNIT_REQ refuses a repeat once state is past
+	/// S_SERVER_SELECT, see Handlers_Unit.cpp). Set alongside
+	/// kSes.m_nSelectedUnitUID in Handler_EGS_SELECT_UNIT_REQ, restored onto
+	/// every new session in OnSessionConnect. Single offline account, so one
+	/// value is enough - same assumption m_nUserUID already makes.
+	UidType										m_nLastSelectedUnitUID;
+#endif SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
+
 	KOfflineRoom								m_kRoom;			///< the one room; see KOfflineRoom
 	UidType										m_nNextRoomUID;
 

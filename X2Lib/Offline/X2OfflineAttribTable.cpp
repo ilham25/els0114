@@ -54,7 +54,14 @@ void CX2OfflineAttribTable::Release()
 bool CX2OfflineAttribTable::RunScript( const wchar_t* szFileName )
 {
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+#ifdef SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+	// bKeepCompressedData must match what LoadAndDoMemory will use below, or
+	// this probe tries to zlib-uncompress this still-XOR'd file itself and
+	// always fails. See Always.h for the full explanation.
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szFileName, true, true );
+#else
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szFileName );
+#endif SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
 
 	// NOT `NULL == kInfo`. MASSFILE_MEMBERFILEINFO_POINTER is a STRUCT BY
 	// VALUE with an `operator const MASSFILE_MEMBERFILEINFO*() const` that

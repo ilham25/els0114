@@ -60,7 +60,14 @@ bool CX2OfflinePetData::RunScript( const wchar_t* szName, int& iRowCounter )
 	// code - a chunk that runs and adds nothing is a failure that reports
 	// success.
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kInfo;
+#ifdef SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
+	// bKeepCompressedData must match what LoadAndDoMemory will use below, or
+	// this probe tries to zlib-uncompress this still-XOR'd file itself and
+	// always fails. See Always.h for the full explanation.
+	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szName, true, true );
+#else
 	kInfo = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szName );
+#endif SERV_IRUHADEV_OFFLINE_PROBE_ENCRYPT_FIX
 
 	// NOT `NULL == kInfo`. MASSFILE_MEMBERFILEINFO_POINTER is a STRUCT BY
 	// VALUE with an `operator const MASSFILE_MEMBERFILEINFO*() const` that
