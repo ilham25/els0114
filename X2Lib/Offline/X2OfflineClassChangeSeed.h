@@ -61,7 +61,8 @@
 //                               (X2CashShop.cpp:7669, which covers BOTH
 //                               families) - 10 shared IDs, zero disagreements
 //
-//              82 rows, no ID in both families, no conflicting target class.
+//              84 rows (82 + the two 2026-09-15 additions below), no ID in
+//              both families, no conflicting target class.
 //              Every #ifdef in every switch was resolved BY COMPILER PROBE,
 //              never by reading: all on except SERV_NEW_CHARACTER_EL /
 //              NEW_CHARACTER_EL (Elesis). Reading them by eye gives six items
@@ -199,6 +200,18 @@ namespace X2OfflineClassChangeSeed
 		{ 252757    , 28 , false },	// UC_ARA_LITTLE_HSIEN
 		{ 264380    , 28 , true  },	// UC_ARA_LITTLE_HSIEN
 		{ 264390    , 118, true  },	// UC_ARA_SAKRA_DEVANAM
+		//{{ Iruha : 2026-09-15 // NEW_CHARACTER_EL's own two rows were missing
+		// from the generated table - the seed header's own range comment
+		// ("264380-264394") already covered them and the ROW_COUNT just never
+		// caught up. Confirmed the miss from offline_server.log: item 264392
+		// claimed into the bag as an ordinary item and was later consumed by
+		// the generic item-use path for no effect - exactly the claim-time
+		// intercept in Handlers_Shop.cpp failing to recognize the ID. Same
+		// target classes (29/30) the CI_CLASS_CHANGE_* re-pick family already
+		// uses for 252754/252755.
+		{ 264391    , 29 , true  },	// UC_ELESIS_SABER_KNIGHT
+		{ 264392    , 30 , true  },	// UC_ELESIS_PYRO_KNIGHT
+		//}}
 		{ 264393    , 31 , true  },	// UC_ARA_LITTLE_DEVIL
 		{ 264394    , 119, true  },	// UC_ARA_YAMA_RAJA
 	};
