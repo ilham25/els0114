@@ -157,6 +157,10 @@
       <Configuration>US_INTERNAL</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="US_SERVICE|Win32">
+      <Configuration>US_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>KTDXLIB</ProjectName>
@@ -295,6 +299,11 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
@@ -449,6 +458,9 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -532,6 +544,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">..\X2\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">..\X2\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">..\X2\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">..\X2\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">..\X2\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">..\X2\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release_SV|Win32'">Release\</IntDir>
@@ -567,6 +580,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -611,6 +625,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'" />
@@ -629,6 +644,7 @@
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='BR_OPEN_TEST|Win32'" />
@@ -652,6 +668,7 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='BR_TEST|Win32'" />
@@ -748,6 +765,7 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(DXSDK_DIR)Include;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(DXSDK_DIR)Include;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)KOGGamePerformanceCheck\include;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;$(SolutionDir)XTRAP\Client;$(SolutionDir)Steamworks;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include_2010;$(SolutionDir)KOGGamePerformanceCheck\include;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\include;$(SolutionDir)XTRAP\Client;$(SolutionDir)Steamworks;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(DXSDK_DIR)Include;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(DXSDK_DIR)Include;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='BR_OPEN_TEST|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
@@ -769,6 +787,7 @@
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0\libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0\libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)KOGGamePerformanceCheck\libs;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;$(SolutionDir)XTRAP\Client;$(SolutionDir)Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)KNCSDK\lib_2010;$(SolutionDir)KOGGamePerformanceCheck\libs;$(SolutionDir)Libs\ExternalLib\freetype-2.4.11\libs;$(SolutionDir)XTRAP\Client;$(SolutionDir)Steamworks\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0\libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;E:\ProjectX2_SVN\source\ExternalLib\Boost\boost_1_44_0\libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;$(LibraryPath)</LibraryPath>
@@ -1600,6 +1619,29 @@
       <OutputFile>$(OutDir)KTDXLIB.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">
+    <ClCompile>
+      <OmitFramePointers>true</OmitFramePointers>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>./;./DXUT;../X2ServerProtocol;../X2ServerProtocol/FSM;../X2ServerProtocol/Socket;./CxImage;../libxml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;SERV_COUNTRY_US;CLIENT_COUNTRY_US;_IN_HOUSE_;_HAS_ITERATOR_DEBUGGING=0;_USE_32BIT_TIME_T;_CONVERT_VS_2010;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <ProgramDataBaseFileName>$(IntDir)KTDXLIB.pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>/Zm600</AdditionalOptions>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)KTDXLIB.lib</OutputFile>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -1737,6 +1779,8 @@
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">
       </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">
+      </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">
@@ -1807,6 +1851,7 @@
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">false</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">false</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">false</ExceptionHandling>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">false</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">false</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">false</ExceptionHandling>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='BR_SERVICE|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
@@ -1836,6 +1881,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/EHac %(AdditionalOptions)</AdditionalOptions>
@@ -1997,6 +2043,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">Create</PrecompiledHeader>
@@ -2038,6 +2085,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2257,6 +2305,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='PH_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_SERVICE|Win32'">true</ExcludedFromBuild>
@@ -2264,6 +2313,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2393,6 +2443,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2435,6 +2486,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2477,6 +2529,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2519,6 +2572,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2561,6 +2615,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2608,6 +2663,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -2648,6 +2704,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2690,6 +2747,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2732,6 +2790,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2774,6 +2833,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2816,6 +2876,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2858,6 +2919,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2900,6 +2962,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2942,6 +3005,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -2984,6 +3048,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -3025,6 +3090,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -3067,6 +3133,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -3124,6 +3191,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>
@@ -3166,6 +3234,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='TH_TEST|Win32'">true</ExcludedFromBuild>

@@ -160,6 +160,10 @@
       <Configuration>US_INTERNAL</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="US_SERVICE|Win32">
+      <Configuration>US_SERVICE</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>X2</ProjectName>
@@ -263,6 +267,10 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -406,6 +414,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" Label="PropertySheets">
@@ -567,6 +578,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(Configuration)\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='BR_TEST|Win32'">$(Configuration)\</OutDir>
@@ -599,6 +611,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='BR_OPEN_TEST|Win32'">$(Configuration)\</IntDir>
@@ -624,6 +637,7 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</LinkIncremental>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'">false</PostBuildEventUseInBuild>
@@ -640,6 +654,7 @@
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">false</PostBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
     <PostBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'">false</PostBuildEventUseInBuild>
@@ -657,6 +672,7 @@
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
+    <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">true</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
     <PreBuildEventUseInBuild Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'">true</PreBuildEventUseInBuild>
@@ -708,6 +724,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -728,6 +745,7 @@
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" />
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" />
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='INT_TEST|Win32'" />
@@ -744,6 +762,7 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'" />
@@ -845,6 +864,7 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(DXSDK_DIR)Include;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(DXSDK_DIR)Include;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(SolutionDir)\Libs\ExternalLib\DXSDK\Include;$(SolutionDir)\Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)\KNCSDK\Include_2010;$(SolutionDir)\KOGGamePerformanceCheck\include;$(SolutionDir)\Libs\ExternalLib\freetype-2.4.11\include;$(SolutionDir)\XTRAP\Client;$(SolutionDir)\Steamworks;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)\Libs\ExternalLib\DXSDK\Include;$(SolutionDir)\Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)\KNCSDK\Include_2010;$(SolutionDir)\KOGGamePerformanceCheck\include;$(SolutionDir)\Libs\ExternalLib\freetype-2.4.11\include;$(SolutionDir)\XTRAP\Client;$(SolutionDir)\Steamworks;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(DXSDK_DIR)Include;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(DXSDK_DIR)Include;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'">$(DXSDK_DIR)Include;$(BOOST_DIR);..\KNCSDK\Include_2010;..\KOGGamePerformanceCheck\include;$(FREE_TYPE_DIR)include;..\XTRAP\Client;$(IncludePath)</IncludePath>
@@ -868,6 +888,7 @@
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">$(SolutionDir)\Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)\Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)\KNCSDK\lib_2010;$(SolutionDir)\KOGGamePerformanceCheck\libs;$(SolutionDir)\Libs\ExternalLib\freetype-2.4.11\libs;$(SolutionDir)\XTRAP\Client;$(SolutionDir)\Steamworks\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">$(SolutionDir)\Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)\Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)\KNCSDK\lib_2010;$(SolutionDir)\KOGGamePerformanceCheck\libs;$(SolutionDir)\Libs\ExternalLib\freetype-2.4.11\libs;$(SolutionDir)\XTRAP\Client;$(SolutionDir)\Steamworks\lib;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='TH_INTERNAL|Win32'">$(DXSDK_DIR)Lib\x86;$(BOOST_DIR)libs;..\KNCSDK\lib_2010;..\KOGGamePerformanceCheck\libs;$(FREE_TYPE_DIR)libs;..\XTRAP\Client;$(LibraryPath)</LibraryPath>
@@ -887,6 +908,7 @@
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">false</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">false</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">false</EmbedManifest>
+    <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">false</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">false</EmbedManifest>
     <EmbedManifest Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">false</EmbedManifest>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='BR_SERVICE|Win32'">x2</TargetName>
@@ -928,6 +950,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">x2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">x2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">x2</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">x2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">x2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">x2</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">x2</TargetName>
@@ -3075,6 +3098,61 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/Zm600</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <AdditionalIncludeDirectories>../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule/NMClass;../NexonModule;../libxml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US;CLIENT_COUNTRY_US;_IN_HOUSE_;_USE_32BIT_TIME_T;_HAS_ITERATOR_DEBUGGING=0;_CONVERT_VS_2010;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>dxstdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>/IGNORE:4089 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>iphlpapi.lib;unicows.lib;kernel32.lib;advapi32.lib;user32.lib;gdi32.lib;shell32.lib;comdlg32.lib;version.lib;mpr.lib;rasapi32.lib;winmm.lib;winspool.lib;vfw32.lib;secur32.lib;oleacc.lib;oledlg.lib;sensapi.lib;dxerr.lib;dxguid.lib;d3dx9.lib;d3d9.lib;comctl32.lib;../HShield/HShield.lib;MachineIdLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalLibraryDirectories>../KTDXLIB;./Common;../X2Lib;../NexonModule;../NexonModule/NMClass;../X2Lib/OnlyGlobal/JP/Auth;../X2Lib/OnlyGlobal/ID/NetCafe;../X2Lib/OnlyGlobal/ID/NMClientAuthLib;../X2Lib/OnlyGlobal/ID/NMRunParamLib;../X2Lib/OnlyGlobal/ID/SSOWebLib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libc;libcmt.lib;libcmtd.lib;libcpmt.lib;libcpmtd.lib;msvcrtd.lib;msvcprtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(OutDir)$(ProjectName).map</MapFileName>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <BaseAddress>0x32830000</BaseAddress>
+      <TargetMachine>MachineX86</TargetMachine>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <FixedBaseAddress>true</FixedBaseAddress>
+      <SupportUnloadOfDelayLoadedDLL>false</SupportUnloadOfDelayLoadedDLL>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+mkdir "E:\Elsword_InHouse\Data\0"
+
+copy $(TargetPath) E:\Elsword_InHouse\Data\X2_Test.exe
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Major\*.* E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\NPC\npctemplet.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\NPC\npcstat.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\World\worlddata.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Dungeon\dungeondata.lua E:\Elsword_InHouse\Data\0
+
+copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">
     <ClCompile>
       <AdditionalOptions>/Zm600</AdditionalOptions>
@@ -3285,6 +3363,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='JP_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='CN_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_INTERNAL|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='US_SERVICE|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='TW_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='EU_INTERNAL|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
