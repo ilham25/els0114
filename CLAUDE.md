@@ -12,12 +12,12 @@ Full source for **Elsword (internal codename "ProjectX2")** by KOG Studios — t
 
 **All edits to client code — `X2/`, `X2Lib/`, `KTDXLIB/` — must be wrapped in a custom `#define` named with the `SERV_IRUHADEV_` prefix.** No exceptions, including one-line fixes. This follows the studio's own practice (see *Feature flags* below) and keeps every local change revertible by undefining a single macro.
 
-Define the flag in **`KTDXLIB/Always.h`**. That is the flag file that reaches all three client projects unconditionally in a `US_INTERNAL` build: `KTDX.h` defines `_ALWAYS_` unconditionally ([KTDX.h:37](KTDXLIB/KTDX.h#L37)) and includes `Always.h` at [KTDX.h:190](KTDXLIB/KTDX.h#L190); `X2Lib` reaches it through `stdafx.h` → `X2Main.h` → `KTDX.h`, and `X2.exe` through `X2.cpp` → `X2/Common/dxstdafx.h` → `X2Main.h`.
+Define the flag in **`KTDXLIB/Always.h`**. That is the flag file that reaches all three client projects unconditionally in any US client build (`US_SERVICE`, `US_INTERNAL`, ...): `KTDX.h` defines `_ALWAYS_` unconditionally ([KTDX.h:37](KTDXLIB/KTDX.h#L37)) and includes `Always.h` at [KTDX.h:190](KTDXLIB/KTDX.h#L190); `X2Lib` reaches it through `stdafx.h` → `X2Main.h` → `KTDX.h`, and `X2.exe` through `X2.cpp` → `X2/Common/dxstdafx.h` → `X2Main.h`.
 
 Do **not** define client flags in:
 
 - `KncWX2Server/Common/ServerDefine.h` — that is the shared/server file. It *is* visible inside `X2Lib` (via `X2ServerPacket.h` → `CommonPacket.h:16`), but it is **not** visible inside `KTDXLIB`, and defining a client flag there drags it into the server build too.
-- `KTDXLIB/InHouse1.h`–`InHouse6.h`, `InHouseEtc.h` — as of the March 2014 snapshot these **are** compiled in (`US_INTERNAL` defines `_IN_HOUSE_`; see *Toolchains*), so a flag put there would now take effect — but they are the studio's per-developer files, they carry ~84 apparent defines whose real state needs the preprocessor to settle, and a flag of ours buried among them is unfindable. Keep ours in `Always.h`.
+- `KTDXLIB/InHouse1.h`–`InHouse6.h`, `InHouseEtc.h` — as of the March 2014 snapshot these **are** compiled in under `US_INTERNAL` and (for now — see *Toolchains*) `US_SERVICE` too, both of which define `_IN_HOUSE_` — so a flag put there would take effect, but they are the studio's per-developer files, they carry ~84 apparent defines whose real state needs the preprocessor to settle, and a flag of ours buried among them is unfindable. Keep ours in `Always.h`.
 
 Pattern to follow — append to the end of `Always.h`, using the house comment block:
 
@@ -178,16 +178,21 @@ Notes that matter in practice:
   linked servers and logins out of anything committed or logged — the same
   handling the `.dsn` files get (see *Cautions*).
 
-## Toolchains — the client is VS2010/`US_INTERNAL`; the servers are VS2003 and unbuildable here
+## Toolchains — the client is VS2010/`US_SERVICE`; the servers are VS2003 and unbuildable here
 
-**This changed on 2026-09-09, when the client source was replaced with a March 2014 snapshot (`dd63297`).** Two things moved at once: the client's only US configuration is now `US_INTERNAL` (`US_SERVICE` is gone from every `.vcxproj` and `.sln`), and the servers reverted to VS2003 — the VS2010 server port's source fixes were overwritten by the March sources, so `X2Project_Servers_2010.sln` can no longer build and `VS2003_to_VS2010_Port_Guide.md` is now history rather than instructions.
+**This changed on 2026-09-09, when the client source was replaced with a March 2014 snapshot (`dd63297`).** Two things moved at once: the client's only US configuration became `US_INTERNAL` (`US_SERVICE` was gone from every `.vcxproj` and `.sln`), and the servers reverted to VS2003 — the VS2010 server port's source fixes were overwritten by the March sources, so `X2Project_Servers_2010.sln` can no longer build and `VS2003_to_VS2010_Port_Guide.md` is now history rather than instructions.
+
+**A new `US_SERVICE` client configuration was added back on 2026-09-16** (`X2/X2_2010.vcxproj`, `X2Lib/X2Lib_2010.vcxproj`, `KTDXLIB/KTDXLIB_2010.vcxproj` — not the `.sln`, see below), cloned from `US_INTERNAL` with the `ClCompile` optimization settings changed to match the current `EU_SERVICE`/`BR_SERVICE` profile (`Optimization=Full`, `IntrinsicFunctions=true`, `EnableFiberSafeOptimizations=true`, `FavorSizeOrSpeed=Speed`, `OmitFramePointers=true`, `FunctionLevelLinking=false`) — `US_INTERNAL` compiled essentially unoptimized (`Optimization=Disabled`, or no `Optimization` tag at all in `X2Lib`'s case), which was the cause of a reported inventory-hover/tab-switch stutter. **Build the client as `US_SERVICE` by default from now on; only use `US_INTERNAL` if explicitly asked for it** (e.g. to reach for the in-house cheat/dev-UI surface, or to compare against the pre-optimization baseline). As of this writing `US_SERVICE` still defines `_IN_HOUSE_` identically to `US_INTERNAL` — stripping it is a separate, not-yet-done step (tracked as "stage 2" against this same config; see the *What `US_INTERNAL`/`US_SERVICE` actually define* table below for what that would change) — so the two configs currently differ **only** in the optimization flags, nothing else.
 
 | Target | Solution | Config | Toolchain |
 |---|---|---|---|
-| Client, engine, tools | `X2Project_2010.sln` | **`US_INTERNAL`** | VS2010 (`v100`), Win32, Unicode |
+| Client, engine, tools (default) | `X2/X2_2010.vcxproj`, `X2Lib/X2Lib_2010.vcxproj`, `KTDXLIB/KTDXLIB_2010.vcxproj` | **`US_SERVICE`** | VS2010 (`v100`), Win32, Unicode |
+| Client, engine, tools (only if asked) | (same three `.vcxproj`s) | `US_INTERNAL` | VS2010 (`v100`), Win32, Unicode |
 | `luaLib`, `luajitLib` | (same solution) | **`Release`** | VS2010 (`v100`), Win32 |
 | `X2ServerProtocol` | (same solution) | **`X2TOOL`** | VS2010 (`v100`), Win32 |
 | The five servers | `X2Project_2003.sln` | `Release_US` | VS2003 (`v70`), Win32 — **not installed here** |
+
+`US_SERVICE` was added directly to the three `.vcxproj` files, not to `X2Project_2010.sln`'s configuration list — that's cosmetic (only affects opening the solution in Visual Studio) since the build recipe below never goes through the `.sln`. If you need to select `US_SERVICE` inside Visual Studio itself, the solution-level config list needs the same addition first.
 
 **The VS2010 C++ compiler is on `D:`, not `C:`** — `D:\Program Files\VS\Microsoft Visual Studio 10.0\` (registry `HKLM\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VC7` → `10.0`). The `C:\Program Files (x86)\Microsoft Visual Studio 10.0\` tree holds only shell pieces and has no `VC` directory. **VS2003 is not installed at all** (no `SxS\VS7` entry for `7.1`), so the servers cannot be built in this environment — plan around that rather than discovering it mid-task.
 
@@ -209,33 +214,36 @@ TRUNK="F:/elsword stuff/.../source/EU_CN_US/Trunk"   # must end in a slash when 
 MP="-m -p:MultiProcessorCompilation=true"
 
 # Dependencies first, in this order. luajitLib and luaLib are Release; X2ServerProtocol is X2TOOL.
-"$MSBUILD" luajitLib/luajitLib.vcxproj                    -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" luaLib/luaLib_2010.vcxproj                     -p:Configuration=Release     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+# Client config is US_SERVICE by default - substitute US_INTERNAL only if explicitly asked.
+"$MSBUILD" luajitLib/luajitLib.vcxproj                    -p:Configuration=Release    -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" luaLib/luaLib_2010.vcxproj                     -p:Configuration=Release    -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL     -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
 ```
 
 `SolutionDir` **must** be passed, with a trailing slash: every `IncludePath` entry for Boost, DXSDK, KNCSDK and freetype is written as `$(SolutionDir)Libs...`, so without it the build dies on `fatal error C1083: Cannot open include file: 'boost/shared_ptr.hpp'` or `'d3dx9.h'`. Use **forward slashes**, and put the trailing slash inside the value (`SolutionDir=F:/.../Trunk/`). A backslash path is an active trap: a trailing `\` before a closing quote escapes the quote, msbuild gets a mangled `SolutionDir`, and the build fails with `C1083: Cannot open include file: 'ImportKncSerializer.h'` — which reads like a missing KNCSDK include path in the project and is not.
 
 Three things about that command list are load-bearing:
 
-- **Never build the client from `X2Project_2010.sln`.** Its `US_INTERNAL` build sweeps in ~15 dead tool/server projects and never runs `X2_2010.vcxproj`, so it does not produce an exe.
-- **`X2ServerProtocol` is not a `ProjectReference` of `X2Lib`** (only `KTDXLIB` is), so it is never rebuilt implicitly — build it explicitly or you link a stale `X2Lib/X2ServerProtocol.lib`. It has **no `US_*` configuration at all**; the solution maps `US_INTERNAL` → `X2TOOL|Win32`, whose `OutDir` is already `..\X2Lib\`.
-- **`luajitLib` is required, not optional.** `_USE_LUAJIT_` is defined unconditionally (`KTDX.h:392-397`, via `X2OPTIMIZE_APPLY_UNPACK_HACK_PREVENTION`) and `KTDXApp.cpp:38` auto-links `luajitLib.lib` with a `#pragma comment`. Because `X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE` is *not* defined under `US_INTERNAL`, it must be the **full interpreter** build — `Release`, never `Release_NoInterpreter`. Its `Release` config outputs `..\KTDXLIB\luajitLib.lib`. `luaLib` still exists and still builds alongside it.
+- **Never build the client from `X2Project_2010.sln`.** Its `US_INTERNAL` build sweeps in ~15 dead tool/server projects and never runs `X2_2010.vcxproj`, so it does not produce an exe. (`US_SERVICE` was never added to the `.sln` at all — see above — so this applies to it too, doubly.)
+- **`X2ServerProtocol` is not a `ProjectReference` of `X2Lib`** (only `KTDXLIB` is), so it is never rebuilt implicitly — build it explicitly or you link a stale `X2Lib/X2ServerProtocol.lib`. It has **no `US_*` configuration at all**; the solution maps `US_INTERNAL` → `X2TOOL|Win32` (there is no `US_SERVICE` mapping since it's not in the `.sln` — irrelevant anyway, since the recipe above always builds `X2ServerProtocol` with an explicit `-p:Configuration=X2TOOL`, never through a solution-config mapping), whose `OutDir` is already `..\X2Lib\`.
+- **`luajitLib` is required, not optional.** `_USE_LUAJIT_` is defined unconditionally (`KTDX.h:392-397`, via `X2OPTIMIZE_APPLY_UNPACK_HACK_PREVENTION`) and `KTDXApp.cpp:38` auto-links `luajitLib.lib` with a `#pragma comment`. Because `X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE` is *not* defined under `US_INTERNAL` or `US_SERVICE`, it must be the **full interpreter** build — `Release`, never `Release_NoInterpreter`. Its `Release` config outputs `..\KTDXLIB\luajitLib.lib`. `luaLib` still exists and still builds alongside it.
 
-Build artifacts:
+Build artifacts (default, `US_SERVICE`; substitute `US_INTERNAL` for the other config):
 
-- `X2/US_INTERNAL/x2.exe` — the client. Note the **lowercase** name: `TargetName` is `x2`.
-- `X2/X2Lib.lib`, `X2/KTDXLIB.lib` — static libs; `OutDir` is `..\X2\`, only the `.obj` intermediates land in `X2Lib/US_INTERNAL/` and `KTDXLIB/US_INTERNAL/`.
+- `X2/US_SERVICE/x2.exe` — the client. Note the **lowercase** name: `TargetName` is `x2`.
+- `X2/X2Lib.lib`, `X2/KTDXLIB.lib` — static libs; `OutDir` is `..\X2\`, only the `.obj` intermediates land in `X2Lib/US_SERVICE/` and `KTDXLIB/US_SERVICE/`. These are config-specific — a `US_INTERNAL` build and a `US_SERVICE` build each leave their own `.lib`, and the later build wins if you don't check which one you last ran.
 - `KTDXLIB/luajitLib.lib`, `KTDXLIB/luaLib.lib`, `X2Lib/X2ServerProtocol.lib`.
 
-**The post-build event no longer fails.** `X2/X2_2010.vcxproj:642` sets `PostBuildEventUseInBuild` to `false` for `US_INTERNAL`, so the old copy-to-`E:\Elsword_InHouse` step never runs. The exit code is now meaningful — but still confirm `X2/US_INTERNAL/x2.exe` was produced and is newly dated.
+**The post-build event no longer fails.** `X2/X2_2010.vcxproj:642` sets `PostBuildEventUseInBuild` to `false` for `US_INTERNAL` and (cloned identically) `US_SERVICE`, so the old copy-to-`E:\Elsword_InHouse` step never runs for either. The exit code is now meaningful — but still confirm `X2/US_SERVICE/x2.exe` was produced and is newly dated.
 
 There is **no runnable test suite**. The one CppUnit fixture (`X2Lib/X2GameUnitTestCase.h`) is gated behind `CPPUNIT_BY_TOOL_TEAM`, commented out in `KTDXLIB/AlwaysButConditionally.h`. `Libs/InternalLib/KNCSDK/UnitTest/` is the vendored SDK's own test project, not wired into either solution.
 
-### What `US_INTERNAL` actually defines (client)
+### What `US_INTERNAL`/`US_SERVICE` actually define (client)
+
+**As of this writing `US_SERVICE`'s `PreprocessorDefinitions` are identical to `US_INTERNAL`'s** (below) — the 2026-09-16 addition of `US_SERVICE` only changed the `ClCompile` optimization tags (see *Toolchains*), nothing in this table. `_IN_HOUSE_` is still defined under `US_SERVICE` too, so everything this section says about the in-house cheat/dev-UI surface currently applies to both configs equally. Stripping `_IN_HOUSE_` from `US_SERVICE` (and adding `AUTO_LOGIN_IN_HOUSE` directly, since it would otherwise stop arriving through `InHouse2.h`) is a deliberately separate, not-yet-done step — if and when that lands, update this section to describe the two configs' definitions separately.
 
 | Project | Preprocessor definitions |
 |---|---|
@@ -247,7 +255,7 @@ There is **no runnable test suite**. The one CppUnit fixture (`X2Lib/X2GameUnitT
 
 All three client projects are `Unicode`, so `UNICODE`/`_UNICODE` come from `CharacterSet` rather than the definitions list — a hand-rolled `cl` invocation must pass them or `DXUT.h:11` raises an `#error`.
 
-**`_IN_HOUSE_` is now defined, and that is the single biggest behavioural change from the old `US_SERVICE` build.** `KTDX.h:493` therefore includes all seven per-developer flag files (`InHouseEtc.h`, `InHouse1.h`–`InHouse6.h`), which had been dead code for this build's entire prior history. **Do not reason about these flags by reading the nested `#ifdef`s** — a naive grep for active `#define`s in those files reports 84, of which at least `MASS_FILE_FIRST` and `WORLD_TOOL` are false positives sitting inside dead conditionals. Resolve them with `cl /EP` on a probe that includes `KTDX.h`; the exact recipe and the full verdict table are in `MARCH_2014_MIGRATION.md`.
+**`_IN_HOUSE_` is defined (under both `US_INTERNAL` and, for now, `US_SERVICE`), and that is the single biggest behavioural change from the old (pre-March-2014-snapshot) `US_SERVICE` build**, which did not define it. `KTDX.h:493` therefore includes all seven per-developer flag files (`InHouseEtc.h`, `InHouse1.h`–`InHouse6.h`), which had been dead code for this build's entire prior history. **Do not reason about these flags by reading the nested `#ifdef`s** — a naive grep for active `#define`s in those files reports 84, of which at least `MASS_FILE_FIRST` and `WORLD_TOOL` are false positives sitting inside dead conditionals. Resolve them with `cl /EP` on a probe that includes `KTDX.h`; the exact recipe and the full verdict table are in `MARCH_2014_MIGRATION.md`.
 
 The results that matter:
 
@@ -319,7 +327,7 @@ Because the two sides are compiled separately (even now that both can use VS2010
 Nearly every change since ~2009 sits behind a named `#define`, and there is no build-time consistency check.
 
 - **Server plus shared:** `KncWX2Server/Common/ServerDefine.h` (~4300 lines, ~490 `SERV_*` flags). Its tail keys off `SERV_COUNTRY_US` to pull in `Common/OnlyGlobal/ServerDefine/ServerDefine_US.h`, alongside the always-on `ServerDefine_Global.h`.
-- **Client:** `KTDXLIB/KTDX.h` is the hub. `Always.h` and `AlwaysButConditionally.h` are always reachable, and under `US_INTERNAL` the seven `InHouse*.h` files are reachable too (see *Toolchains*). `X2Lib/X2Define.h` holds client tuning constants and the `XEM_ERROR*` code list. Several blocks in `KTDX.h` are explicitly `#ifndef _SERVICE_`, i.e. deliberately absent from this build.
+- **Client:** `KTDXLIB/KTDX.h` is the hub. `Always.h` and `AlwaysButConditionally.h` are always reachable, and under `US_INTERNAL` and (for now) `US_SERVICE` the seven `InHouse*.h` files are reachable too (see *Toolchains*). `X2Lib/X2Define.h` holds client tuning constants and the `XEM_ERROR*` code list. Several blocks in `KTDX.h` are explicitly `#ifndef _SERVICE_`, i.e. deliberately absent from this build.
 
 When adding a flag, follow the local pattern: new `#define` at the end of the owning file, commented with author / date / description, and make sure it is defined for *every* project that compiles code guarded by it. For our own client changes the owning file is always `KTDXLIB/Always.h` and the name always starts with `SERV_IRUHADEV_` — see the rule at the top of this file.
 
@@ -361,18 +369,20 @@ MP="-m -p:MultiProcessorCompilation=true"                            # 16 cores,
 # 1. build - dependencies, then X2Lib, then the exe. See *Toolchains* for the
 #    full ordered list and why each config is what it is. NEVER build via
 #    X2Project_2010.sln: its US_INTERNAL build sweeps in ~15 dead tool/server
-#    projects and never runs X2_2010.vcxproj, so it produces no exe.
+#    projects and never runs X2_2010.vcxproj, so it produces no exe (US_SERVICE
+#    isn't even in the .sln's config list at all - see *Toolchains*). Client
+#    config is US_SERVICE by default - substitute US_INTERNAL only if asked.
 "$MSBUILD" X2ServerProtocol/X2ServerProtocol_2010.vcxproj -p:Configuration=X2TOOL      -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
-"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_INTERNAL -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" KTDXLIB/KTDXLIB_2010.vcxproj                   -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2Lib/X2Lib_2010.vcxproj                       -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
+"$MSBUILD" X2/X2_2010.vcxproj                             -p:Configuration=US_SERVICE -p:Platform=Win32 "-p:SolutionDir=$TRUNK/" $MP
 
-# 2. confirm the artifact. The post-build event is disabled under US_INTERNAL,
-#    so the exit code is meaningful now - but still check the file and its date.
-ls -la X2/US_INTERNAL/x2.exe
+# 2. confirm the artifact. The post-build event is disabled under US_SERVICE (and
+#    US_INTERNAL), so the exit code is meaningful now - but still check the file and its date.
+ls -la X2/US_SERVICE/x2.exe
 
 # 3. deploy - the game directory names it X2_offline.exe
-cp X2/US_INTERNAL/x2.exe "$DATA/X2_offline.exe"
+cp X2/US_SERVICE/x2.exe "$DATA/X2_offline.exe"
 
 # 4. run, then read the logs it wrote next to itself
 cd "$DATA" && ./start_offline.bat
@@ -380,7 +390,7 @@ cd "$DATA" && ./start_offline.bat
 
 Five things that go wrong at deploy time, all of them silently:
 
-- **Deploy onto the exact name already in the game directory, and confirm it rather than assuming it.** It is `X2_offline.exe`, which is also the name `start_offline.bat` looks for. The source artifact is now `x2.exe` **lowercase** out of `X2/US_INTERNAL/`, and the old game directory holds half a dozen other `X2_*.exe` builds from earlier mods, so a near-miss name silently leaves the old exe in place and the next play-test measures stale code. `ls` in a terminal is not proof — read the name programmatically (`python -c "import os; print(os.listdir(DATA))"`) before claiming anything about it, and check the size and mtime of what you copied. A build that did not land is indistinguishable from a change that did not work.
+- **Deploy onto the exact name already in the game directory, and confirm it rather than assuming it.** It is `X2_offline.exe`, which is also the name `start_offline.bat` looks for. The source artifact is `x2.exe` **lowercase** out of `X2/US_SERVICE/` (or `X2/US_INTERNAL/` if that config was built instead - the two do not share an output directory, so check which one you actually built), and the old game directory holds half a dozen other `X2_*.exe` builds from earlier mods, so a near-miss name silently leaves the old exe in place and the next play-test measures stale code. `ls` in a terminal is not proof — read the name programmatically (`python -c "import os; print(os.listdir(DATA))"`) before claiming anything about it, and check the size and mtime of what you copied. A build that did not land is indistinguishable from a change that did not work.
 - **A stale PCH silently discards header edits.** `Always.h` and `X2Define.h` sit inside every project's precompiled header, and msbuild does not always notice. The flag is then simply absent at the call site with no error — the `#else` branch compiles and the change looks like it did nothing. After editing any header, `touch X2Lib/stdafx.cpp` before building, and if a change appears to have no effect, **prove the code compiled in** rather than re-reading the `#ifdef`s: put a `#pragma message` inside the guard, rebuild that one project, and read the compiler output.
 - **Windows Defender quarantines fresh builds.** A newly linked `x2.exe` trips a Bearfoos ML false positive. If the copy or the launch fails with no obvious reason, check Protection History; the fix is folder exclusions for the build output and the game directory, which needs an admin.
 - **The working directory must be the game directory.** `X2Main` mounts the `.kom` archives through a `"./"` prefix, and the offline server writes `els_db.sql` and both logs relative to the cwd. Launching from anywhere else finds no content, or quietly starts a second empty save somewhere surprising. `start_offline.bat` does `cd /d "%~dp0"` for exactly this; a shortcut with a different *Start in* field does not.
