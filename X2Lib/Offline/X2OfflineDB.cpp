@@ -343,6 +343,21 @@ namespace
 	const char* const SCHEMA_V11 =
 		"ALTER TABLE unit_pet ADD COLUMN summoned INTEGER NOT NULL DEFAULT 0;"
 		;
+
+	//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+	// v13 (this phase): which trainings this character has cleared, so
+	// KTrainingCenterTable::CheckIfEnter can unlock a chained training
+	// (m_iBeforeID != 0) and the fixed clear reward is paid at most once per TC
+	// ID, matching ERM_END_TC_GAME_ACK on live. No count or rank, unlike
+	// unit_dungeon - a training clear is a flag, not a score.
+	const char* const SCHEMA_V13 =
+		"CREATE TABLE IF NOT EXISTS unit_tc_clear ("
+		"  unit_uid   INTEGER NOT NULL,"
+		"  tc_id      INTEGER NOT NULL,"
+		"  clear_date INTEGER NOT NULL DEFAULT 0,"
+		"  PRIMARY KEY( unit_uid, tc_id ) );"
+		;
+	//}} Iruha : 2026-09-17
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -986,6 +1001,17 @@ bool CX2OfflineDB::Migrate()
 			(int)LEGACY_UNIT_SLOTS, (int)DEFAULT_UNIT_SLOTS );
 	}
 
+	//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+	if( iFrom < 13 )
+	{
+		if( false == Exec( "BEGIN;" ) )			return false;
+		if( false == Exec( SCHEMA_V13 ) )		{ Exec( "ROLLBACK;" ); return false; }
+		if( false == Exec( "COMMIT;" ) )		return false;
+
+		CX2OfflineLog::Server( L"DB       schema upgraded to v13 (training center clears)" );
+	}
+	//}} Iruha : 2026-09-17
+
 	char szSetVersion[64];
 	_snprintf( szSetVersion, 64, "PRAGMA user_version = %d;", (int)SCHEMA_VERSION );
 	szSetVersion[63] = '\0';
@@ -1283,7 +1309,7 @@ bool CX2OfflineDB::FinalDeleteUnit( UidType nUnitUID )
 		{ "inventory_size", "item", "unit_skill", "unit_quest", "unit_dungeon",
 		  "unit_subquest", "unit_quest_complete", "unit_mission", "unit_submission",
 		  "unit_title", "unit_pet", "unit_riding_pet", "unit_skill_unsealed",
-		  "unit_skill_note" };
+		  "unit_skill_note", "unit_tc_clear" };	///< unit_tc_clear added 2026-09-17 (schema v13)
 	//}}
 
 	// Begin()/Commit(), not "BEGIN;": since phase 8 the whole dispatch is
@@ -1505,6 +1531,65 @@ bool CX2OfflineDB::LoadDungeonClears( UidType nUnitUID,
 	sqlite3_finalize( pStmt );
 	return true;
 }
+
+//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+bool CX2OfflineDB::AddTCClear( UidType nUnitUID, int iTCID )
+{
+	KLocker lock( m_cs );
+
+	if( NULL == m_pDB )
+		return false;
+
+	// INSERT OR IGNORE, not an upsert: a training clear is a flag, and once set
+	// it never needs updating - the live server pays GetReward() exactly once
+	// per TC ID for the same reason (ERM_END_TC_GAME_ACK's m_mapTCClear.find
+	// guard). A second clear of the same training is legitimate (nothing stops
+	// replaying it) and simply pays nothing further, matching live.
+	sqlite3_stmt* pStmt = Prepare(
+		"INSERT OR IGNORE INTO unit_tc_clear ( unit_uid, tc_id, clear_date ) "
+		"VALUES ( ?1, ?2, ?3 );" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+	sqlite3_bind_int(   pStmt, 2, iTCID );
+	sqlite3_bind_int64( pStmt, 3, NowEpoch() );
+
+	bool bOK = ( SQLITE_DONE == sqlite3_step( pStmt ) );
+
+	sqlite3_finalize( pStmt );
+	return bOK;
+}
+
+bool CX2OfflineDB::LoadTCClears( UidType nUnitUID, OUT std::vector< KOfflineTCClearRow >& vecOut )
+{
+	KLocker lock( m_cs );
+
+	vecOut.clear();
+
+	if( NULL == m_pDB )
+		return false;
+
+	sqlite3_stmt* pStmt = Prepare(
+		"SELECT tc_id, clear_date FROM unit_tc_clear WHERE unit_uid = ?1 ORDER BY tc_id;" );
+	if( NULL == pStmt )
+		return false;
+
+	sqlite3_bind_int64( pStmt, 1, (sqlite3_int64)nUnitUID );
+
+	while( SQLITE_ROW == sqlite3_step( pStmt ) )
+	{
+		KOfflineTCClearRow kRow;
+		kRow.m_iTCID		= sqlite3_column_int( pStmt, 0 );
+		kRow.m_tClearDate	= (__int64)sqlite3_column_int64( pStmt, 1 );
+
+		vecOut.push_back( kRow );
+	}
+
+	sqlite3_finalize( pStmt );
+	return true;
+}
+//}} Iruha : 2026-09-17
 
 //////////////////////////////////////////////////////////////////////////
 // inventory

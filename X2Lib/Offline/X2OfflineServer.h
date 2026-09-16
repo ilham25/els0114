@@ -166,6 +166,18 @@ public:
 		/// is the only thing that is still true when the request arrives.
 		bool			m_bTutorial;
 
+		//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+		/// Which training this is, if m_kInfo.m_RoomType is RT_TRAININGCENTER; 0
+		/// otherwise. Set only by Handler_EGS_CREATE_TC_ROOM_REQ and read only by
+		/// Handler_EGS_END_TC_GAME_REQ - the room's identity is the only place
+		/// this can live, because KEGS_END_TC_GAME_REQ carries no TC ID of its
+		/// own (ClientPacket.h: just a bool). The live server has the same gap
+		/// and closes it the same way, one hop up: GSUserRoomCommon.cpp's
+		/// ERM_END_TC_GAME_ACK reads kPacket_.m_iTCID off the CenterServer's own
+		/// per-room state, never off the client's request.
+		int				m_iTCID;
+		//}} Iruha : 2026-09-17
+
 		/// NPC UID -> the level and ID the client reported when it asked for the
 		/// monster. KEGS_NPC_UNIT_DIE_REQ carries neither, and both are needed
 		/// to price the kill.
@@ -376,6 +388,7 @@ public:
 			m_kInfo.Initialize();
 			m_nUnitUID			= 0;
 			m_bTutorial			= false;
+			m_iTCID				= 0;
 			m_mapNpcLevel.clear();
 			m_mapNpcID.clear();
 			m_mapNpcNoDrop.clear();
@@ -657,6 +670,18 @@ private:
 	/// entering a room
 	bool Handler_EGS_CREATE_TUTORIAL_ROOM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
 	bool Handler_EGS_CREATE_ROOM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+
+	//{{ Iruha : 2026-09-17 // the training center (offline mode follow-up).
+	// Camilla's training school - a solo instance the real server evicts the
+	// player from their party to enter (SendLeaveParty et al.,
+	// GSUserRoomCommon.cpp's EGS_CREATE_TC_ROOM_REQ), not the multiplayer room
+	// phase 7 took it for. CX2StateTrainingSchool only ever sends the REQ when
+	// its own client-side copy of the training table already has the row
+	// (CheckIfEnter), so no server Lua is missing here - see the handler.
+	bool Handler_EGS_CREATE_TC_ROOM_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_END_TC_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	bool Handler_EGS_SET_TC_REMAINING_TIME_REQ( KOfflineSession& kSes, const KEvent& kEvent );
+	//}} Iruha : 2026-09-17
 
 	/// Solo dungeon entry - the one the dungeon button on the local map uses,
 	/// and the only way into a normal dungeon. Needs no party: see the handler.

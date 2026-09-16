@@ -330,6 +330,25 @@ struct KOfflineDungeonClearRow
 	}
 };
 
+//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+/// One cleared training - dbo.GTrainingCenter, and KTCClearInfo on the wire.
+/// Unlike a dungeon clear this is a plain first-clear flag: KTrainingCenterTable::
+/// CheckIfEnter only asks "is m_iBeforeID present in this map at all", and the
+/// live server's GetReward is paid exactly once per TC ID (GSUserRoomCommon.cpp,
+/// ERM_END_TC_GAME_ACK) - so there is no count or rank to track, only the date.
+struct KOfflineTCClearRow
+{
+	int			m_iTCID;
+	__int64		m_tClearDate;
+
+	KOfflineTCClearRow()
+		: m_iTCID( 0 )
+		, m_tClearDate( 0 )
+	{
+	}
+};
+//}} Iruha : 2026-09-17
+
 //////////////////////////////////////////////////////////////////////////
 /// One row of `unit`, in the shape the packet handlers want it.
 struct KOfflineUnitRow
@@ -396,7 +415,7 @@ public:
 	{
 		/// Schema revision. Bump it and add a rung to Migrate() when a later
 		/// phase needs a new table, so existing saves are not wiped.
-		SCHEMA_VERSION			= 12,
+		SCHEMA_VERSION			= 13,
 
 		//{{ Iruha : 2026-09-16 // Vanilla hardcodes iDelableDay = 1 (one full
 		// day) for every region (GSGameDBThread.cpp). This build has no
@@ -572,6 +591,21 @@ public:
 	/// prerequisite - permanently, across every login.
 	bool	LoadDungeonClears( UidType nUnitUID,
 							   OUT std::vector< KOfflineDungeonClearRow >& vecOut );
+
+	//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+	/// Mark a training cleared, once. INSERT OR IGNORE rather than an upsert -
+	/// unlike a dungeon there is nothing to bump on a repeat clear, and the live
+	/// server's own reward is paid exactly once per TC ID for the same reason.
+	bool	AddTCClear( UidType nUnitUID, int iTCID );
+
+	/// Every training this character has cleared.
+	///
+	/// Without it `KUnitInfo::m_mapTCClear` goes out empty every login,
+	/// `KTrainingCenterTable::CheckIfEnter` can never find a prerequisite, and
+	/// every training past the first in a chain (m_iBeforeID != 0) stays locked
+	/// forever - the training-list equivalent of the dungeon-lock bug above.
+	bool	LoadTCClears( UidType nUnitUID, OUT std::vector< KOfflineTCClearRow >& vecOut );
+	//}} Iruha : 2026-09-17
 
 	/// Skill points. Kept separate from SaveProgress because they move on their
 	/// own - a skill learned or reset changes SP without touching level or EXP.

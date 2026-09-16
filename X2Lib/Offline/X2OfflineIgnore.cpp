@@ -49,9 +49,16 @@ namespace
 		// Reason() only runs on a packet Dispatch already declined.
 		{ L"PVP",					L"no PvP offline; a match is peer-to-peer and there is no peer" },
 
-		// phase 7: "the training school". TC is how the ids spell it
-		// (EGS_CREATE_TC_ROOM_REQ, EGS_END_TC_GAME_REQ, ...).
-		{ L"_TC_",					L"the training school is a multiplayer room" },
+		// EGS_CREATE_TC_ROOM_REQ and EGS_END_TC_GAME_REQ stood here as a single
+		// "_TC_" rule until 2026-09-17, reasoned as "the training school is a
+		// multiplayer room" (phase 7). That was backwards: GSUserRoomCommon.cpp's
+		// own EGS_CREATE_TC_ROOM_REQ handler calls SendLeaveParty /
+		// SendLeavePVPMatch / SendLeaveAutoParty / SendLeaveField on the way in -
+		// it EVICTS the player from whatever multiplayer thing they were in, the
+		// same as a solo dungeon room. Both packets are handled now
+		// (Handlers_Room.cpp). EGS_SET_TC_REMAINING_TIME_REQ is handled too.
+		// EGS_LEAVE_TC_ROOM_REQ/ACK are not - grepping X2Lib and GameServer for
+		// them turns up no sender on either side, so there is nothing to ignore.
 
 		// phase 5: "the item crafting family phase 5 already refuses
 		// (manufacture, synthesis, resolve, identify, seal, evaluate, convert)".

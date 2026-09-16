@@ -608,6 +608,11 @@ bool CX2OfflineServer::Dispatch( KOfflineSession& kSes, const KEvent& kEvent )
 	// rooms, the dungeon run inside one, and its result - Handlers_Room.cpp
 	case EGS_CREATE_TUTORIAL_ROOM_REQ:		return Handler_EGS_CREATE_TUTORIAL_ROOM_REQ( kSes, kEvent );
 	case EGS_CREATE_ROOM_REQ:				return Handler_EGS_CREATE_ROOM_REQ( kSes, kEvent );
+	//{{ Iruha : 2026-09-17 // the training center (offline mode follow-up)
+	case EGS_CREATE_TC_ROOM_REQ:			return Handler_EGS_CREATE_TC_ROOM_REQ( kSes, kEvent );
+	case EGS_END_TC_GAME_REQ:				return Handler_EGS_END_TC_GAME_REQ( kSes, kEvent );
+	case EGS_SET_TC_REMAINING_TIME_REQ:	return Handler_EGS_SET_TC_REMAINING_TIME_REQ( kSes, kEvent );
+	//}} Iruha : 2026-09-17
 	case EGS_QUICK_START_DUNGEON_GAME_REQ:	return Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( kSes, kEvent );
 	case EGS_JOIN_BATTLE_FIELD_REQ:			return Handler_EGS_JOIN_BATTLE_FIELD_REQ( kSes, kEvent );
 	case EGS_ROOM_LIST_REQ:					return Handler_EGS_ROOM_LIST_REQ( kSes, kEvent );
@@ -984,6 +989,29 @@ bool CX2OfflineServer::EnsureAccount( KOfflineSession& kSes, const std::wstring&
 			kOut.m_mapDungeonClear[ kInfo.m_iDungeonID ] = kInfo;
 		}
 	}
+
+	//{{ Iruha : 2026-09-17 // the training center, phase (offline mode follow-up)
+	// WHICH TRAININGS ARE CLEARED, the training-list equivalent of the dungeon
+	// map just above. KTrainingCenterTable::CheckIfEnter (both the server's copy
+	// and the client's own CX2TrainingCenterTable) looks a training's
+	// m_iBeforeID up in exactly this map, so an empty one locks every chained
+	// training past the first forever - the same failure mode as the dungeon
+	// map, one screen over.
+	{
+		std::vector< KOfflineTCClearRow > vecTCClear;
+		CX2OfflineDB::Instance()->LoadTCClears( kRow.m_nUnitUID, vecTCClear );
+
+		for( size_t i = 0; i < vecTCClear.size(); ++i )
+		{
+			KTCClearInfo kInfo;
+			kInfo.m_iTCID			= vecTCClear[i].m_iTCID;
+			kInfo.m_wstrClearTime	= CX2OfflineDB::FormatDate( vecTCClear[i].m_tClearDate );
+			kInfo.m_bNew			= false;	///< see m_bNew's comment on the dungeon map above
+
+			kOut.m_mapTCClear[ kInfo.m_iTCID ] = kInfo;
+		}
+	}
+	//}} Iruha : 2026-09-17
 
 	// Gear and skills (phase 5). This runs for every unit in the character
 	// list, not just the selected one, because the character-select screen

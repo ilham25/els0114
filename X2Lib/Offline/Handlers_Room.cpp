@@ -595,6 +595,197 @@ bool CX2OfflineServer::Handler_EGS_CREATE_ROOM_REQ( KOfflineSession& kSes, const
 	return Reply( kSes, EGS_CREATE_ROOM_ACK, kAck );
 }
 
+//{{ Iruha : 2026-09-17 // the training center (offline mode follow-up)
+// Camilla's training school. Phase 7's ignore rule called this "the training
+// school is a multiplayer room" and that was simply wrong: GSUserRoomCommon.cpp's
+// EGS_CREATE_TC_ROOM_REQ handler calls SendLeaveParty / SendLeavePVPMatch /
+// SendLeaveAutoParty / SendLeaveField on the way in - it EVICTS the player from
+// whatever multiplayer thing they were in, exactly like a solo dungeon room.
+// CX2StateTrainingGame derives from CX2StateDungeonGame outright, so once the
+// room exists everything else - stage load, NPC create/die, EXP/ED, world
+// triggers, ESC to leave - is the ordinary dungeon path this phase already
+// implements; only entering and finishing the training are TC-specific.
+//
+// No server Lua is missing here, despite the shape of the rule elsewhere in
+// this codebase: CX2StateTrainingSchool::Handler_EGS_CREATE_TC_ROOM_REQ only
+// ever sends this request after its OWN CX2TrainingCenterTable (loaded
+// client-side from TrainingCenterTemplet.lua, the same file the GameServer's
+// KTrainingCenterTable reads) has found the row and passed CheckIfEnter - so
+// the packet reaching here at all proves the table is already loaded, and
+// g_pData->GetTrainingCenterTable() is read directly rather than asking the
+// user to pack anything.
+bool CX2OfflineServer::Handler_EGS_CREATE_TC_ROOM_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_CREATE_TC_ROOM_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KEGS_CREATE_TC_ROOM_ACK kAck;
+	kAck.m_iOK = NetError::NET_OK;
+
+	CX2TrainingCenterTable::TC_TABLE_INFO kInfo;
+	if( NULL == g_pData || NULL == g_pData->GetTrainingCenterTable() ||
+		false == g_pData->GetTrainingCenterTable()->GetTrainingInfo( kInfo, kReq.m_iTCID ) ||
+		kInfo.m_iDungeonID <= 0 )
+	{
+		CX2OfflineLog::Server( L"ROOM     ERROR TC id=%d is not in TrainingCenterTemplet.lua"
+			L" (or has no dungeon id) - the client should never have sent this",
+			kReq.m_iTCID );
+
+		kAck.m_iOK = NetError::ERR_TC_03;
+		return Reply( kSes, EGS_CREATE_TC_ROOM_ACK, kAck );
+	}
+
+	// DL_NORMAL to match CX2StateTrainingSchool::Handler_EGS_CREATE_TC_ROOM_ACK,
+	// which hardcodes the same value on the room it builds from this ACK
+	// (X2StateTrainingSchool.cpp:380) - KTCInfo carries no difficulty of its
+	// own, so the client's guess and this room's own drop-table key
+	// (m_iDungeonID + m_DifficultyLevel, see Handler_EGS_NPC_UNIT_DIE_REQ) have
+	// to agree by convention rather than by the wire.
+	KRoomInfo kSeed;
+	kSeed.Initialize();
+	kSeed.m_RoomName		= L"TRAINING";
+	kSeed.m_bPublic			= false;
+	kSeed.m_iDungeonID		= kInfo.m_iDungeonID;
+	kSeed.m_DifficultyLevel	= (char)CX2Dungeon::DL_NORMAL;
+	kSeed.m_fPlayTime		= kInfo.m_fPlayTime;
+
+	KOfflineUnitRow kRow;
+	if( false == OpenRoom( kSes, (int)CX2Room::RT_TRAININGCENTER, kSeed, 0, kRow ) )
+	{
+		kAck.m_iOK = NetError::ERR_ROOM_00;
+		return Reply( kSes, EGS_CREATE_TC_ROOM_ACK, kAck );
+	}
+
+	// The only thing that has to outlive this handler: KEGS_END_TC_GAME_REQ
+	// carries no TC ID of its own (ClientPacket.h - just a bool), so the room
+	// remembers which training this is for Handler_EGS_END_TC_GAME_REQ.
+	m_kRoom.m_iTCID = kReq.m_iTCID;
+
+	// KTCInfo, not KRoomInfo - MakeRoomInfo fills the latter's relay address and
+	// is not used here. CX2StateTrainingSchool::Handler_EGS_CREATE_TC_ROOM_ACK
+	// (the #else HEAP_BROKEN_BY_ROOM branch, the live one - see
+	// MARCH_2014_MIGRATION.md) calls
+	// ConnectRelayServer( kEvent.m_kTCInfo.m_wstrUDPRelayIP.c_str(), ...usPort )
+	// straight off this struct, so an empty IP here goes into
+	// ConvertIPToAddress -> gethostbyname exactly as it would for a bare
+	// KRoomInfo missing the same fields.
+	kAck.m_kTCInfo.m_iTCID			= kReq.m_iTCID;
+	kAck.m_kTCInfo.m_iDungeonID		= kInfo.m_iDungeonID;
+	kAck.m_kTCInfo.m_RoomUID		= m_kRoom.m_kInfo.m_RoomUID;
+	kAck.m_kTCInfo.m_cRoomType		= (char)CX2Room::RT_TRAININGCENTER;
+	kAck.m_kTCInfo.m_wstrUDPRelayIP	= RELAY_IP;
+	kAck.m_kTCInfo.m_usUDPRelayPort	= RELAY_PORT;
+	kAck.m_kTCInfo.m_fPlayTime		= kInfo.m_fPlayTime;
+
+	// The one player's slot data, built the documented way rather than by hand -
+	// every trap MakeRoomUserInfo's own comments describe (zeroed game stat,
+	// title, PvP rank, wrong self UDP address) applies here exactly as it does
+	// to a dungeon room, and the client copies this struct into its slot
+	// wholesale (X2StateTrainingSchool.cpp:402).
+	MakeRoomUserInfo( kRow, kAck.m_kRoomUserInfo );
+
+	// bSuccess appears to reach Handler_EGS_END_TC_GAME_REQ as true only out of
+	// a timeout the client considers a win (Handler_EGS_PLAY_TIME_OUT_NOT,
+	// gated on the substage's GetWinWhenTimeOut()) - never from the plain ESC
+	// exit or the F4 debug key, which both pass false. Logging the row now,
+	// once, rather than guessing at that path further: one play-test with this
+	// line shows whether this training even has a finite clock and what its
+	// reward really is.
+	CX2OfflineLog::Server( L"ROOM     training %I64d tcID=%d dungeonID=%d beforeID=%d"
+		L" playTime=%.0f reward=%d ED / %d EXP for unitUID=%I64d",
+		(__int64)m_kRoom.m_kInfo.m_RoomUID, kReq.m_iTCID, kInfo.m_iDungeonID,
+		kInfo.m_iBeforeID, kInfo.m_fPlayTime, kInfo.m_iRewardED, kInfo.m_iRewardEXP,
+		(__int64)kRow.m_nUnitUID );
+
+	return Reply( kSes, EGS_CREATE_TC_ROOM_ACK, kAck );
+}
+
+bool CX2OfflineServer::Handler_EGS_END_TC_GAME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	KEGS_END_TC_GAME_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KEGS_END_TC_GAME_ACK kAck;
+	kAck.m_iOK			= NetError::NET_OK;
+	kAck.m_bIsSuccess	= kReq.m_bIsSuccess;
+
+	// Mirrors ERM_END_TC_GAME_ACK (GSUserRoomCommon.cpp): the fixed clear reward
+	// is paid at most once per TC ID, ever - not once per run. NPC kills along
+	// the way already paid through the ordinary Handler_EGS_NPC_UNIT_DIE_REQ
+	// path, same as any other dungeon; this is only the training's own bonus.
+	if( true == kReq.m_bIsSuccess && true == m_kRoom.m_bActive && 0 != m_kRoom.m_iTCID )
+	{
+		std::vector< KOfflineTCClearRow > vecClear;
+		CX2OfflineDB::Instance()->LoadTCClears( m_kRoom.m_nUnitUID, vecClear );
+
+		bool bAlreadyCleared = false;
+		for( size_t i = 0; i < vecClear.size() && false == bAlreadyCleared; ++i )
+		{
+			if( vecClear[i].m_iTCID == m_kRoom.m_iTCID )
+				bAlreadyCleared = true;
+		}
+
+		if( false == bAlreadyCleared )
+		{
+			CX2OfflineDB::Instance()->AddTCClear( m_kRoom.m_nUnitUID, m_kRoom.m_iTCID );
+
+			CX2TrainingCenterTable::TC_TABLE_INFO kInfo;
+			if( NULL != g_pData && NULL != g_pData->GetTrainingCenterTable() &&
+				true == g_pData->GetTrainingCenterTable()->GetTrainingInfo( kInfo, m_kRoom.m_iTCID ) &&
+				( kInfo.m_iRewardED > 0 || kInfo.m_iRewardEXP > 0 ) )
+			{
+				ApplyDungeonReward( m_kRoom.m_nUnitUID, kInfo.m_iRewardEXP, kInfo.m_iRewardED );
+
+				CX2OfflineLog::Server( L"REWARD   unitUID=%I64d first clear of TC id=%d: +%d ED, +%d EXP",
+					(__int64)m_kRoom.m_nUnitUID, m_kRoom.m_iTCID, kInfo.m_iRewardED, kInfo.m_iRewardEXP );
+			}
+		}
+	}
+
+	// The client reads the difference between this and its own current unit
+	// data to show the reward (CX2StateTrainingGame::Handler_EGS_END_TC_GAME_ACK)
+	// and then Reset()s the whole unit from it - which is also what carries the
+	// just-written TC clear map back, unlocking the next training in a chain
+	// (KTrainingCenterTable::CheckIfEnter reads m_mapTCClear) without needing a
+	// relog.
+	KOfflineUnitRow kRow;
+	if( true == CX2OfflineDB::Instance()->LoadUnit( m_kRoom.m_nUnitUID, kRow ) )
+		MakeUnitInfoFromRow( kAck.m_kUnitInfo, kRow );
+
+	// Not m_kRoom.Clear(): the client stays in XS_TRAINING_GAME for five more
+	// seconds after this ACK (m_fRemainTimeToGameEnd) and keeps sending sync/
+	// status packets, exactly the same shape Handler_EGS_END_GAME_REQ leaves
+	// the room in for a normal dungeon's result screen. Handler_EGS_LEAVE_ROOM_REQ
+	// is what actually closes it, same as the server's SetRoomUID(0) here.
+	CX2OfflineLog::Server( L"ROOM     training %I64d ended (success=%d)",
+		(__int64)m_kRoom.m_kInfo.m_RoomUID, (int)kReq.m_bIsSuccess );
+
+	kSes.m_eState = S_FIELD_MAP;
+
+	return Reply( kSes, EGS_END_TC_GAME_ACK, kAck );
+}
+
+bool CX2OfflineServer::Handler_EGS_SET_TC_REMAINING_TIME_REQ( KOfflineSession& kSes, const KEvent& kEvent )
+{
+	// CX2DungeonGame::SetStartRealTraining is the only caller
+	// (X2DungeonGame.cpp:2938), toggling whether a training's clock is "really"
+	// running - a dungeon-script hook nothing shipped in this table's rows uses
+	// in practice. Nothing offline tracks that state, so this only clears the
+	// client's wait; see the CREATE_TC_ROOM log line if a training turns out to
+	// need it for real.
+	KEGS_SET_TC_REMAINING_TIME_REQ kReq;
+	if( false == ReadReq( kEvent, kReq ) )
+		return false;
+
+	KPacketOK kAck;
+	kAck.m_iOK = NetError::NET_OK;
+
+	return Reply( kSes, EGS_SET_TC_REMAINING_TIME_ACK, kAck );
+}
+//}} Iruha : 2026-09-17
+
 void CX2OfflineServer::TrackFieldNpc( const KNPCUnitReq& kReq )
 {
 	m_kRoom.m_mapNpcLevel[ kReq.m_UID ]	= (int)kReq.m_Level;
