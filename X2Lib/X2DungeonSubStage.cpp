@@ -1,4 +1,7 @@
 #include "StdAfx.h"
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+#include "Offline/X2OfflineLog.h"
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 #include ".\x2dungeonsubstage.h"
 
 
@@ -1499,7 +1502,11 @@ bool CX2DungeonSubStage::SubStageData::LoadData( KLuaManager& luaManager, bool b
 	// that rather than silently shipping an empty stage.
 	if( true == bIsNpcLoad )
 	{
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+		New_LoadNPCData( luaManager );
+#else
 		LoadNPCData( luaManager );
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 	}
 #endif SERV_IRUHADEV_OFFLINE
 //}}
@@ -1830,6 +1837,23 @@ void CX2DungeonSubStage::SubStageData::LoadNpcData4Tool( KLuaManager& luaManager
 
 void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 {
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+	// Migrated onto the same map-keyed representation New_LoadNPCData uses
+	// below - see that function comment, and the flag comment in Always.h.
+	// A plain NPC_GROUP dungeon is just group 0 at 100%, matching the
+	// server own LoadNPCData under SERV_DUNGEON_RANDOM_NPC_GROUP
+	// (XSLDungeonSubStage.cpp:256-261, 332-349), which does the same thing -
+	// not a separate legacy container that BuildStageNpcData has to branch on.
+	if( luaManager.BeginTable( "NPC_GROUP" ) == true )
+	{
+		vector<NPCData*> vecGroupZero;
+		ParseNpcGroupTable( luaManager, vecGroupZero, false );
+		luaManager.EndTable(); // NPC_GROUP
+
+		m_mapNPCDataList[ 0 ] = vecGroupZero;
+		m_vecNpcGroupRate.push_back( make_pair( 0, 100.0f ) );
+	}
+#else
 	if( luaManager.BeginTable( "NPC_GROUP" ) == true )
 	{
 		int npcIndex = 1;
@@ -1856,14 +1880,14 @@ void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 
 					bThereWasSubNPCScript = true;
 
-				
+
 					int iRate = 0;
 					LUA_GET_VALUE( luaManager, "SUB_NPC_RATE", iRate, 0 );
 					pNPCData->m_Rate = iRate;
 					iSubNPCRate += iRate;
 
 					if( iRandomNumber < iSubNPCRate && false == bSubNPCSelected )
-					{	
+					{
 						bSubNPCSelected = true;
 						iSelectedSubNPCIndex = m_NPCDataList.size() - 1;
 					}
@@ -1880,7 +1904,7 @@ void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 
 			if(	true == bThereWasSubNPCScript )
 			{
-				// 선택되지 않은 sub_NPC의 rate를 0으로
+				// 빗택된 것 저외한 sub_NPC은
 				for( int i=iSubNPCStartIndex; i<=iSubNPCEndIndex; i++ )
 				{
 					if( i != iSelectedSubNPCIndex )
@@ -1890,8 +1914,8 @@ void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 					}
 				}
 			}
-			
-			
+
+
 			if( false == bThereWasSubNPCScript )
 			{
 				NPCData* pNPCData = new NPCData();
@@ -1900,13 +1924,204 @@ void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 				m_NPCDataList.push_back( pNPCData );
 			}
 
-			npcIndex++;			
+			npcIndex++;
 			luaManager.EndTable();
 
 		}
 		luaManager.EndTable(); // NPC_GROUP
 	}
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 }
+
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+// SERV_DUNGEON_RANDOM_NPC_GROUP client mirror. The shipping client never
+// needed any of this - it never placed static dungeon monsters itself, the
+// server (CXSLDungeonSubStage/CXSLDungeon) parsed the script and shipped the
+// chosen list down KEGS_DUNGEON_STAGE_LOAD_NOT. When the studio added
+// NPC_GROUP_RATE server-side (2012-12-21), only the server copy of this
+// parser was extended (XSLDungeonSubStage.cpp New_LoadNPCData,
+// XSLDungeon.cpp GetNPCData) - the client copy was never touched, because
+// it did not need to be. Offline mode has no server to do that parse, so
+// this is how the offline emulator gets the monster list; see
+// BuildStageNpcData in Handlers_Room.cpp for the other half (the server-side
+// GetNPCData equivalent that picks a group and reads m_mapNPCDataList).
+//
+// This function - not LoadNPCData - is the only thing LoadData() calls under
+// bIsNpcLoad now. LoadNPCData is retained purely as this function fallback
+// for the "no NPC_GROUP_RATE table" case, mirroring
+// CXSLDungeonSubStage::New_LoadNPCData own fallback to its LoadNPCData.
+bool CX2DungeonSubStage::SubStageData::New_LoadNPCData( KLuaManager& luaManager )
+{
+	if( luaManager.BeginTable( "NPC_GROUP_RATE" ) == false )
+	{
+		// No rate table - this script uses the plain NPC_GROUP form, which
+		// LoadNPCData already migrates onto m_mapNPCDataList[0] at 100%.
+		LoadNPCData( luaManager );
+
+		CX2OfflineLog::Server( L"GAME     NPC_GROUP_RATE not found; used plain "
+			L"NPC_GROUP instead (%u case(s) in group 0)",
+			(unsigned int)( m_mapNPCDataList.count( 0 ) ? m_mapNPCDataList[ 0 ].size() : 0 ) );
+
+		return true;
+	}
+
+	// The studio's own inline comment on this table (XSLDungeonSubStage.cpp:369-377)
+	// shows NPC_GROUP_RATE0/1/2 as plain number fields (NPC_GROUP_RATE0 = 30),
+	// but the code right below it (XSLDungeonSubStage.cpp:390-419) opens
+	// NPC_GROUP_RATE<N> AS A TABLE and reads the weight from element [1] - i.e.
+	// NPC_GROUP_RATE0 = { 30 }, not a bare number. The code is what actually
+	// ran in production, so it is what this mirrors; the comment is stale.
+	// Each NPC_GROUP_RATE<N> table is closed with its own EndTable(), then a
+	// second EndTable() (after the loop) closes the outer NPC_GROUP_RATE -
+	// NPC_GROUP0, NPC_GROUP1, ... are siblings of NPC_GROUP_RATE, not children
+	// of it, so that second EndTable() has to happen before opening them.
+	int iRateCaseCount = 0;
+
+	for( int iGroupRateID = 0; ; ++iGroupRateID )
+	{
+		char szRateTable[128] = "";
+		sprintf_s( szRateTable, ARRAY_SIZE(szRateTable), "NPC_GROUP_RATE%d", iGroupRateID );
+
+		if( luaManager.BeginTable( szRateTable ) == false )
+			break;
+
+		float fRate = 0.0f;
+		luaManager.GetValue( 1, fRate );
+		luaManager.EndTable(); // NPC_GROUP_RATE<N>
+
+		m_vecNpcGroupRate.push_back( make_pair( iGroupRateID, fRate ) );
+		++iRateCaseCount;
+	}
+
+	luaManager.EndTable(); // NPC_GROUP_RATE (the outer table)
+
+	int iGroupCount = 0;
+	int iNpcTotal = 0;
+
+	for( int iGroupID = 0; ; ++iGroupID )
+	{
+		char szGroupTable[128] = "";
+		sprintf_s( szGroupTable, ARRAY_SIZE(szGroupTable), "NPC_GROUP%d", iGroupID );
+
+		if( luaManager.BeginTable( szGroupTable ) == false )
+			break;
+
+		vector<NPCData*> vecGroup;
+		ParseNpcGroupTable( luaManager, vecGroup, true );
+		luaManager.EndTable(); // NPC_GROUP<N>
+
+		iNpcTotal += (int)vecGroup.size();
+		m_mapNPCDataList[ iGroupID ] = vecGroup;
+		++iGroupCount;
+	}
+
+	// Discriminates "this dungeon script genuinely has no NPC_GROUP_RATE
+	// table" from "the parser above has a nesting or bool-comparison bug" on
+	// the very first play-test, instead of re-guessing blind.
+	CX2OfflineLog::Server( L"GAME     NPC_GROUP_RATE: %d rate case(s), %d group(s), "
+		L"%d NPC(s) total", iRateCaseCount, iGroupCount, iNpcTotal );
+
+	return true;
+}
+
+void CX2DungeonSubStage::SubStageData::ParseNpcGroupTable( KLuaManager& luaManager, vector<NPCData*>& vecOut, bool bWinnerOnly )
+{
+	int npcIndex = 1;
+	while( luaManager.BeginTable( npcIndex ) == true )
+	{
+		int iSubNPCStartIndex = (int)vecOut.size();
+		int iSubNPCEndIndex = iSubNPCStartIndex - 1;
+		int iSelectedSubNPCIndex = -1;
+		int iSubNPCRate = 0;
+		int iRandomNumber = rand() % 100;
+		bool bSubNPCSelected = false;
+		bool bThereWasSubNPCScript = false;
+
+		for( int i = 0; ; i++ )
+		{
+			if( true == luaManager.BeginTable( "SUB_NPC", i ) )
+			{
+				NPCData* pNPCData = new NPCData();
+				pNPCData->m_bSubNpc = true;
+				FetchNPCData( luaManager, pNPCData );
+				vecOut.push_back( pNPCData );
+
+				bThereWasSubNPCScript = true;
+
+				int iRate = 0;
+				LUA_GET_VALUE( luaManager, "SUB_NPC_RATE", iRate, 0 );
+				pNPCData->m_Rate = iRate;
+				iSubNPCRate += iRate;
+
+				if( iRandomNumber < iSubNPCRate && false == bSubNPCSelected )
+				{
+					bSubNPCSelected = true;
+					iSelectedSubNPCIndex = (int)vecOut.size() - 1;
+				}
+				++iSubNPCEndIndex;
+
+				luaManager.EndTable();
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if( true == bThereWasSubNPCScript && true == bWinnerOnly )
+		{
+			// Unlike the plain-NPC_GROUP path (LoadNPCData, bWinnerOnly=false,
+			// today existing behavior), keep only the SUB_NPC this roll
+			// actually selected and delete the rest of the set - otherwise a
+			// dense NPC_GROUP<N> under NPC_GROUP_RATE spawns every SUB_NPC
+			// variant at once instead of the one the roll picked.
+			NPCData* pWinner = ( iSelectedSubNPCIndex >= 0 ) ? vecOut[ iSelectedSubNPCIndex ] : NULL;
+
+			for( int i = iSubNPCEndIndex; i >= iSubNPCStartIndex; i-- )
+			{
+				if( i != iSelectedSubNPCIndex )
+					SAFE_DELETE( vecOut[i] );
+				vecOut.pop_back();
+			}
+
+			if( NULL != pWinner )
+				vecOut.push_back( pWinner );
+		}
+
+		if( false == bThereWasSubNPCScript )
+		{
+			NPCData* pNPCData = new NPCData();
+			pNPCData->m_bSubNpc = false;
+			FetchNPCData( luaManager, pNPCData );
+			vecOut.push_back( pNPCData );
+		}
+
+		npcIndex++;
+		luaManager.EndTable();
+	}
+}
+
+int CX2DungeonSubStage::SubStageData::GetRandomNpcGroupID() const
+{
+	// Local stand-in for KLottery::Decision (Lottery.cpp:121-142): uniform
+	// roll 0..100, walk the cases in insertion order accumulating, return the
+	// first case whose cumulative sum reaches the roll.
+	const float fRoll = (float)( rand() % 10000 ) / 100.0f;
+	float fAccumulate = 0.0f;
+
+	for( size_t i = 0; i < m_vecNpcGroupRate.size(); i++ )
+	{
+		fAccumulate += m_vecNpcGroupRate[i].second;
+		if( fRoll <= fAccumulate )
+			return m_vecNpcGroupRate[i].first;
+	}
+
+	// Empty table, or the roll landed past every case (rates summing under
+	// 100, same edge case the server own GetRandomNpcGruopID logs and
+	// papers over with group 0).
+	return 0;
+}
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 
 void CX2DungeonSubStage::SubStageData::AddNPCData( KNPCUnitReq& kNPCUnitReq )
 {

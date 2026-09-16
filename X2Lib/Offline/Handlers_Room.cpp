@@ -1536,9 +1536,32 @@ void CX2OfflineServer::BuildStageNpcData( int iStageID, OUT std::map< int, KNPCL
 
 		KNPCList kList;
 
-		for( size_t i = 0; i < pSubStageData->m_NPCDataList.size(); ++i )
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+		// Mirrors CXSLDungeon::GetNPCData unconditionally, with no branch
+		// between "old-format" and "new-format" dungeons - New_LoadNPCData
+		// (X2DungeonSubStage.cpp) always populates m_mapNPCDataList, even for
+		// a plain-NPC_GROUP script (as group 0 @ 100%), so this is the only
+		// place BuildStageNpcData reads from.
+		const int iNpcGroupID = pSubStageData->GetRandomNpcGroupID();
+		std::map< int, std::vector<CX2DungeonSubStage::NPCData*> >::const_iterator mit =
+			pSubStageData->m_mapNPCDataList.find( iNpcGroupID );
+
+		if( mit == pSubStageData->m_mapNPCDataList.end() )
 		{
-			const CX2DungeonSubStage::NPCData* pNpc = pSubStageData->m_NPCDataList[i];
+			CX2OfflineLog::Server( L"GAME     ERROR stage %d sub %u picked NPC group %d, "
+				L"which the parse never produced", iStageID, (unsigned int)iSub, iNpcGroupID );
+			mapOut.insert( std::make_pair( (int)iSub, kList ) );
+			continue;
+		}
+
+		const std::vector<CX2DungeonSubStage::NPCData*>& vecNpcList = mit->second;
+#else
+		const std::vector<CX2DungeonSubStage::NPCData*>& vecNpcList = pSubStageData->m_NPCDataList;
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+
+		for( size_t i = 0; i < vecNpcList.size(); ++i )
+		{
+			const CX2DungeonSubStage::NPCData* pNpc = vecNpcList[i];
 			if( NULL == pNpc || CX2UnitManager::NUI_NONE == pNpc->m_UnitID )
 				continue;
 
@@ -1591,7 +1614,39 @@ void CX2OfflineServer::BuildStageNpcData( int iStageID, OUT std::map< int, KNPCL
 			else
 				kReq.m_nStartPos = pNpc->m_vecStartPos[ rand() % pNpc->m_vecStartPos.size() ];
 
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+			// A script that omits a per-NPC LEVEL relies on the server's own
+			// dungeon-level fallback (XSLDungeon.cpp:164-167: m_Level =
+			// m_sDungeonData.m_NpcLevel) - every monster observed in Sander
+			// does exactly this (confirmed from a play-test log: every NPC in
+			// a run, boss included, logged the identical level). m_iNpcLevel
+			// is the client's now-read mirror of that same DungeonData.lua
+			// field (X2Dungeon.h/X2DungeonManager.cpp) - not an approximation.
+			//
+			// A first attempt at this fallback used m_MaxLevel/m_MinLevel (the
+			// dungeon's overall level *band*, meant for matchmaking) instead of
+			// m_NpcLevel (the specific level monsters actually spawn at), which
+			// can differ from the true value - and did: it is the likely cause
+			// of a live "CX2BuffChangeStatBehaviorTemplet GetBehaviorFactor
+			// didn't work" messagebox fighting Karis (Santilus Ship), whose
+			// buff's factor data most likely only covers his real level.
+			// m_MaxLevel/m_MinLevel remain only as a last-resort fallback for
+			// the case m_iNpcLevel is itself unset (0).
+			int iEffectiveLevel = pNpc->m_Level;
+			if( iEffectiveLevel <= 0 )
+				iEffectiveLevel = pDungeon->GetDungeonData()->m_iNpcLevel;
+
+			if( iEffectiveLevel <= 0 )
+			{
+				iEffectiveLevel = ( pDungeon->GetDungeonData()->m_MaxLevel > 0 )
+									? pDungeon->GetDungeonData()->m_MaxLevel
+									: pDungeon->GetDungeonData()->m_MinLevel;
+			}
+
+			kReq.m_Level = (char)( bRelative ? ( iRelativeBase + pNpc->m_Level ) : iEffectiveLevel );
+#else
 			kReq.m_Level = (char)( bRelative ? ( iRelativeBase + pNpc->m_Level ) : pNpc->m_Level );
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 
 			// m_cMonsterGrade stays MG_NORMAL_NPC: the client's NPCData only
 			// carries a grade under X2TOOL, so it is not in this build's copy of

@@ -3819,3 +3819,23 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              restored onto every new session in OnSessionConnect.
 #define SERV_IRUHADEV_OFFLINE_RESTORE_SELECTED_UNIT
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-16
+// Description: Every Sander-region dungeon spawned zero monsters offline -
+//              CX2DungeonSubStage's revived Lua parser (SERV_IRUHADEV_OFFLINE)
+//              only ever understood the plain NPC_GROUP table
+//              (LoadNPCData). Sander's dungeons are authored right after the
+//              studio added SERV_DUNGEON_RANDOM_NPC_GROUP server-side
+//              (KncWX2Server/Common/ServerDefine.h), which introduced a
+//              random-weighted NPC_GROUP_RATE table the client's copy of the
+//              same parser was never extended to read, because the server
+//              used to pick the group and ship the result, not the client.
+//              This migrates the client's offline-only parse (New_LoadNPCData,
+//              GetRandomNpcGroupID) onto the same map-keyed representation
+//              (m_mapNPCDataList) the server settled on, so a plain-format
+//              dungeon is just the degenerate one-group case rather than a
+//              separate legacy container BuildStageNpcData has to branch on.
+#define SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+//////////////////////////////////////////////////////////////////////////
+

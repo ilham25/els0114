@@ -174,7 +174,14 @@ class CX2Dungeon
 			bool		m_bHideLoadingTip;
 #endif HIDE_LOADING_TIP
 
-#ifdef X2TOOL
+			// SERV_DUNGEON_NPC_LEVEL's client-side mirror. m_NPCLevel is a real field
+			// in DungeonData.lua (server reads it the same way, XSLDungeonManager.cpp:104)
+			// - the shipping client parses this member only under X2TOOL because it
+			// never needed a static NPC's level itself; the server picked it and
+			// shipped the chosen level down the packet. Offline has no server to do
+			// that, so BuildStageNpcData (Handlers_Room.cpp) needs the real value
+			// here rather than approximating from m_MinLevel/m_MaxLevel.
+#if defined(X2TOOL) || defined(SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE)
 			int				m_iNpcLevel;
 #endif
 		};

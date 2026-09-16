@@ -233,6 +233,20 @@ class CX2DungeonSubStage
 			vector<CurtainData*>	m_CurtainDataList;
 			vector<NPCData*>		m_NPCDataList;
 			vector<Trigger*>		m_TriggerList;
+
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+			// SERV_DUNGEON_RANDOM_NPC_GROUP's client-side mirror - see
+			// New_LoadNPCData's comment in X2DungeonSubStage.cpp for why this
+			// exists at all. Keyed like CXSLDungeonSubStage::SubStageData's
+			// m_mapNPCDataList; m_vecNpcGroupRate is a small local stand-in for
+			// the server's KLottery (cumulative-percentage pick), so nothing
+			// server-only has to be linked into the client build. This is the
+			// only representation the offline Lua-parse path writes to now -
+			// m_NPCDataList above keeps its own, unrelated job untouched (see
+			// the .cpp).
+			map< int, vector<NPCData*> >	m_mapNPCDataList;
+			vector< pair<int, float> >		m_vecNpcGroupRate;
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 			//vector<CX2GUNPC*>		m_NPCList;
 
 			CX2DungeonSubStage::GO_TYPE	m_GoType;
@@ -292,6 +306,19 @@ class CX2DungeonSubStage
 				}
 				m_TriggerList.clear();
 
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+				{
+					map< int, vector<NPCData*> >::iterator mit = m_mapNPCDataList.begin();
+					for( ; mit != m_mapNPCDataList.end(); ++mit )
+					{
+						for( size_t i = 0; i < mit->second.size(); i++ )
+							SAFE_DELETE( mit->second[i] );
+						mit->second.clear();
+					}
+					m_mapNPCDataList.clear();
+				}
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+
 // 				for( int i = 0; i < (int)m_NPCList.size(); i++ )
 // 				{
 // 					CX2GUNPC* pCX2GUNPC = m_NPCList[i];
@@ -301,6 +328,9 @@ class CX2DungeonSubStage
 			}
 
 			bool LoadData( KLuaManager& luaManager, bool bIsNpcLoad = false );
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+			int GetRandomNpcGroupID() const;
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 			//void CreateNPC();
 			void AddNPCData( KNPCUnitReq& kNPCUnitReq );
 
@@ -314,6 +344,10 @@ class CX2DungeonSubStage
 		private:
 			void LoadCurtain( KLuaManager& luaManager );
 			void LoadNPCData( KLuaManager& luaManager );			
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+			bool New_LoadNPCData( KLuaManager& luaManager );
+			void ParseNpcGroupTable( KLuaManager& luaManager, vector<NPCData*>& vecOut, bool bWinnerOnly );
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 			void LoadTrigger( KLuaManager& luaManager );
 			void LoadSecretStageEnteringSpeech( KLuaManager& luaManager );
 

@@ -190,6 +190,11 @@ bool CX2DungeonManager::AddDungeonData_LUA()
 #ifdef X2TOOL
 	LUA_GET_VALUE(				luaManager, "m_NPCLevel",			pDungeonData->m_iNpcLevel,		0 );
 #endif
+#ifdef SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
+	// Same field, read for the same reason offline needs it - see the member
+	// comment on DungeonData::m_iNpcLevel in X2Dungeon.h.
+	LUA_GET_VALUE(				luaManager, "m_NPCLevel",			pDungeonData->m_iNpcLevel,		0 );
+#endif SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 
 	// 클리어 후 나오게 될 던전 라운지의 월드 ID를 지정
 	LUA_GET_VALUE_ENUM(			luaManager, "m_eDefaultDungeonLoungeWorldID",		pDungeonData->m_eDefaultDungeonLoungeWorldID,		CX2World::WORLD_ID, CX2World::WI_NONE );
