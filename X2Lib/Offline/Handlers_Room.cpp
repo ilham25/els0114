@@ -1442,6 +1442,19 @@ bool CX2OfflineServer::Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ( KOfflineS
 
 	Reply( kSes, EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_ACK, kAck );
 
+	//{{ Iruha : 2026-09-16 // Phase 28 only wired SendPendingPetRestore into
+	// the village's EGS_FIELD_LOADING_COMPLETE_REQ, on the assumption that
+	// character select always lands in a village first. Handler_EGS_JOIN_
+	// BATTLE_FIELD_REQ's own comment says otherwise: a character whose
+	// last_pos is a VMI_BATTLE_FIELD_* map rejoins the battlefield directly
+	// from character select, never touching the village handler at all. This
+	// is that map's equivalent load-complete point - the moment the player
+	// can actually move - so a pet left summoned stayed invisible (session
+	// state still said summoned; nothing ever sent the spawn) until the
+	// player next happened to visit an actual village.
+	SendPendingPetRestore( kSes );
+	//}}
+
 	// Phase 6: SQT_VISIT_FIELD. This is the field's equivalent of
 	// EGS_FIELD_LOADING_COMPLETE_REQ in a village - the moment the player can
 	// actually move in it, which is when the server counts it as visited
