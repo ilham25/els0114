@@ -61,8 +61,9 @@
 //                               (X2CashShop.cpp:7669, which covers BOTH
 //                               families) - 10 shared IDs, zero disagreements
 //
-//              84 rows (82 + the two 2026-09-15 additions below), no ID in
-//              both families, no conflicting target class.
+//              88 rows (82 + the two 2026-09-15 additions + the four
+//              2026-09-17 Elesis 2nd-job additions below), no ID in both
+//              families, no conflicting target class.
 //              Every #ifdef in every switch was resolved BY COMPILER PROBE,
 //              never by reading: all on except SERV_NEW_CHARACTER_EL /
 //              NEW_CHARACTER_EL (Elesis). Reading them by eye gives six items
@@ -91,7 +92,9 @@
 //
 //              Classes 29/30 (Elesis) have no parent row at all, so both gates
 //              must read "no row" as "do not refuse", never as "refuse" - the
-//              newer family still sells tickets for those two classes.
+//              newer family still sells tickets for those two classes. Same
+//              story for 120/121 (Grand Master/Blazing Heart), added
+//              2026-09-17 with no parent row for the same reason.
 //
 // SIDE_STEP_ROWS - CompareUnitClass's six hardcoded exceptions
 //              (ClassChangeTable.cpp:738-779)
@@ -214,6 +217,31 @@ namespace X2OfflineClassChangeSeed
 		//}}
 		{ 264393    , 31 , true  },	// UC_ARA_LITTLE_DEVIL
 		{ 264394    , 119, true  },	// UC_ARA_YAMA_RAJA
+		//{{ Iruha : 2026-09-17 // Elesis 2nd job (Grand Master / Blazing Heart)
+		// was entirely absent - the seed only ever covered up through
+		// 264380-264394 (Ara). Both item families exist for these two classes,
+		// same shape as every other 2nd-class pair: XSLItem.h:392-393
+		// (CI_CHANGE_JOB_GRAND_MASTER/BLAZING_HEART = 272169/272170, the
+		// job-advance family) and XSLItem.h:513-514
+		// (CI_CLASS_CHANGE_ELESIS_GRAND_MASTER/BLAZING_HEART = 272171/272172,
+		// the re-pick family) - checked against both GetCashItemChangeUnitClass
+		// (XSLItem.cpp:151-152) and GetClassChangeCashItem (XSLItem.cpp:1216-1217),
+		// no disagreement. Both are gated by SERV_ELESIS_SECOND_CLASS_CHANGE,
+		// which is unconditional (ServerDefine.h:4117), and target
+		// UC_ELESIS_GRAND_MASTER/BLAZING_HEART = 120/121 (X2Unit.h:136-137).
+		//
+		// No PARENT_ROWS entry added for 120/121 (or for 29/30, which still has
+		// none either) - deliberately, to match the existing Elesis precedent:
+		// "no row" already reads as "do not refuse" throughout
+		// Handlers_Shop.cpp's gates, which is exactly how 252754/252755 and
+		// 264391/264392 already work for Saber/Pyro Knight. Adding parent rows
+		// now would tighten currently-working behavior as a side effect of an
+		// unrelated addition, rather than something decided on its own.
+		{ 272169    , 120, true  },	// UC_ELESIS_GRAND_MASTER
+		{ 272170    , 121, true  },	// UC_ELESIS_BLAZING_HEART
+		{ 272171    , 120, false },	// UC_ELESIS_GRAND_MASTER
+		{ 272172    , 121, false },	// UC_ELESIS_BLAZING_HEART
+		//}}
 	};
 
 	static const int ROW_COUNT = sizeof( ROWS ) / sizeof( ROWS[0] );
