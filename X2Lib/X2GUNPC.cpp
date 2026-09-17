@@ -2935,6 +2935,14 @@ void CX2GUNPC::ReInit( bool bUseTeamPos, int startPosIndex )
 #endif HP_RELATIVE_CHANGE_RATE
 
 		m_LuaManager.GetValue( "MP_CHANGE_RATE",		fBuffer );
+
+		//{{ Iruha : 2026-09-17 // AI party bots: floor MP regen the same way the
+		// player's is floored, but at a lower rate - see QUALITY_OF_LIFE.md.
+#ifdef SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+		if( true == IsPvpBot() && fBuffer < SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC )
+			fBuffer = SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC;
+#endif SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+		//}} Iruha : 2026-09-17
 		SetChangeRateMp( fBuffer );
 		
 		m_LuaManager.GetValue( "MP_CHARGE_RATE",		fBuffer );		
@@ -4045,6 +4053,14 @@ void CX2GUNPC::InitComponent()
 #endif HP_RELATIVE_CHANGE_RATE
 
 		m_LuaManager.GetValue( "MP_CHANGE_RATE",		fBuffer );
+
+		//{{ Iruha : 2026-09-17 // AI party bots: floor MP regen the same way the
+		// player's is floored, but at a lower rate - see QUALITY_OF_LIFE.md.
+#ifdef SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+		if( true == IsPvpBot() && fBuffer < SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC )
+			fBuffer = SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC;
+#endif SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+		//}} Iruha : 2026-09-17
 		SetChangeRateMp( fBuffer ); 
 
 		m_LuaManager.GetValue( "MP_CHARGE_RATE",		fBuffer );

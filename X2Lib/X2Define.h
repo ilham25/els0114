@@ -2050,6 +2050,13 @@ const float SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC = 50.0f;
 #endif SERV_IRUHADEV_MP_REGEN_BOOST
 //}} Iruha : 2026-09-04
 
+//{{ Iruha : 2026-09-17 // AI party bot MP regen, in MP per second - mirrors
+//   SERV_IRUHADEV_MP_REGEN_BOOST for the player but at a lower rate
+#ifdef SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+const float SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC = 30.0f;
+#endif SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+//}} Iruha : 2026-09-17
+
 
 //{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 5 - AI party member difficulty.
 //

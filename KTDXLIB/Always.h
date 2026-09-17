@@ -3867,3 +3867,16 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 //              for how the two are told apart.
 #define SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
 //////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-17
+// Description: AI party quality-of-life. Give party bots the same MP regen
+//              floor SERV_IRUHADEV_MP_REGEN_BOOST gives the player, but at
+//              SERV_IRUHADEV_PARTY_BOT_MP_REGEN_PER_SEC (X2Lib/X2Define.h,
+//              30 MP/s) instead of 50 - applied in CX2GUNPC::ReInit and
+//              CX2GUNPC::InitComponent, the two places a bot's MP_CHANGE_RATE
+//              is loaded from its class lua, and gated on IsPvpBot() so it
+//              never touches a regular monster or summon.
+#define SERV_IRUHADEV_PARTY_BOT_MP_REGEN
+//////////////////////////////////////////////////////////////////////////
