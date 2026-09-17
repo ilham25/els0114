@@ -3839,3 +3839,31 @@ static const int MAGIC_HERO_MATCH_GAME_KILL_COUNT = 8;
 #define SERV_IRUHADEV_OFFLINE_NPC_GROUP_RATE
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-17
+// Description: AI party quality-of-life 1/2. Spawn every empty bot slot in
+//              CreateOfflinePartyBots's own call instead of one per call,
+//              OFFLINE_BOT_SPAWN_INTERVAL apart (X2Game.cpp). That stagger
+//              existed to spread three CX2GUNPC mesh-and-lua builds across
+//              three frames rather than hitching on one; this trades that
+//              hitch for a party that visibly arrives together, which reads
+//              better on the current US_SERVICE (optimized) client build.
+#define SERV_IRUHADEV_AIPARTY_SPAWN_TOGETHER
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Author: Iruha
+// Date: 2026-09-17
+// Description: AI party quality-of-life 2/2. An AI party member's entrance
+//              animation (the card-summon start state every NPC of this
+//              cast builds into) was being force-skipped at EVERY creation,
+//              in CX2Game::CreateNPC's bot branch - both the dungeon's first
+//              build of the bot and every later respawn after a death, which
+//              is the only two occasions AIPARTY_PERSIST leaves for CreateNPC
+//              to run on. This restricts the skip to a respawn: the bot now
+//              plays its entrance once, when it first joins the dungeon, and
+//              is dropped straight into the wait state (as before) on every
+//              respawn after that. See m_setOfflineBotRespawning (X2Game.h)
+//              for how the two are told apart.
+#define SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+//////////////////////////////////////////////////////////////////////////

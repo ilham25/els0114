@@ -692,6 +692,21 @@ class CX2Game : public CKTDXStage
 		/// by the stage-change reposition so the two cannot drift apart.
 		bool						GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ );
 
+#ifdef SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+		/// Slot UIDs (CX2Room::RoomNpcSlot::m_iNpcUid, cast the same way the
+		/// grace maps above key it) that TickOfflinePartyBots deleted to bring
+		/// a dead party member back. CreateNPC's bot branch consumes an entry
+		/// off this set the moment the rebuild lands: present means this
+		/// creation is a respawn and the entrance animation is force-skipped
+		/// same as every build before this change; absent means it is the
+		/// dungeon's first sight of this party member, and the card-summon
+		/// entrance is now allowed to play instead. Keyed off the delete call
+		/// rather than spawn order, because CreateNPC runs several frames
+		/// after either the initial request or the respawn one and cannot
+		/// otherwise tell them apart.
+		std::set< int >				m_setOfflineBotRespawning;
+#endif SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+
 #ifdef SERV_IRUHADEV_AIPARTY_PERSIST
 		/// True only while CX2DungeonGame::StageLoading is tearing the old
 		/// stage down, and the one thing that makes DeleteAllNPCUnit spare a

@@ -6342,10 +6342,32 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 			if( true == pNPC->IsPvpBot() &&
 				CX2Game::GT_DUNGEON == GetGameType() )
 			{
+#ifdef SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+				// Skip the entrance animation on a respawn only, so the party's
+				// card-summon entrance is free to play the one time it should -
+				// the dungeon's first build of this bot. m_setOfflineBotRespawning
+				// is marked by TickOfflinePartyBots right before it deletes the
+				// corpse to rebuild it; this creation runs several frames after
+				// either that delete or the very first CreateOfflinePartyBots
+				// request and cannot tell the two apart on its own.
+				std::set< int >::iterator itRespawn =
+					m_setOfflineBotRespawning.find( pNPC->GetUID() );
+
+				if( itRespawn != m_setOfflineBotRespawning.end() )
+				{
+					m_setOfflineBotRespawning.erase( itRespawn );
+
+					if( pNPC->GetCommonState().m_Wait != pNPC->GetStartState() )
+						pNPC->StateChangeForce( pNPC->GetCommonState().m_Wait, true );
+				}
+				// else: first sight of this party member this dungeon - let its
+				// own start state (the card-summon entrance) play out.
+#else
 				if( pNPC->GetCommonState().m_Wait != pNPC->GetStartState() )
 				{
 					pNPC->StateChangeForce( pNPC->GetCommonState().m_Wait, true );
 				}
+#endif SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
 
 				// Phase 2. A brief grace period on arrival, matching the one the
 				// studio's own bot revive gives (RebirthUserUnit's bot branch
@@ -7004,19 +7026,29 @@ void CX2Game::CreateOfflinePartyBots()
 			npcSlot.m_wstrNpcName.c_str(), (int)eNpcID, npcSlot.m_iLevel,
 			(__int64)npcSlot.m_iNpcUid, vPos.x, vPos.y, vPos.z, (__int64)myUID );
 
+#ifdef SERV_IRUHADEV_AIPARTY_SPAWN_TOGETHER
+		// Every empty slot in this same call, not one per call - see the
+		// flag's Always.h comment for why the hitch this reintroduces is an
+		// accepted trade. No cooldown armed, so the loop just continues.
+#else
 		// THIS ONE AND NO MORE THIS CALL. The tick comes back for the next
 		// after the interval, so the three mesh-and-lua loads land on three
 		// well-separated frames instead of one.
 		m_fOfflineBotSpawnCooldown = OFFLINE_BOT_SPAWN_INTERVAL;
 		break;
+#endif SERV_IRUHADEV_AIPARTY_SPAWN_TOGETHER
 	}
 
 	// No FlushCreateNPCReq() - CreateNPCReq sends its own packet each time,
 	// and there is only ever one of them per call now.
 	if( numNpc > 0 )
 	{
+#ifdef SERV_IRUHADEV_AIPARTY_SPAWN_TOGETHER
+		CX2OfflineLog::Server( L"AIPARTY  %d bot spawn request(s) sent together", numNpc );
+#else
 		CX2OfflineLog::Server( L"AIPARTY  bot spawn request sent, next in %.1fs if any slot is still empty",
 			OFFLINE_BOT_SPAWN_INTERVAL );
+#endif SERV_IRUHADEV_AIPARTY_SPAWN_TOGETHER
 	}
 }
 
@@ -7374,6 +7406,14 @@ void CX2Game::TickOfflinePartyBots( float fElapsedTime )
 			npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid, fDead );
 
 		m_mapOfflineBotDeadTime.erase( (int)npcSlot.m_iNpcUid );
+
+#ifdef SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+		// Marked here, consumed in CreateNPC's bot branch - see that flag's
+		// comment there for why the delete is the only reliable place to
+		// tell a respawn apart from the dungeon's first build of this bot.
+		m_setOfflineBotRespawning.insert( (int)npcSlot.m_iNpcUid );
+#endif SERV_IRUHADEV_AIPARTY_ENTRANCE_ANIM
+
 		DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
 
 		bAnyDue = true;
